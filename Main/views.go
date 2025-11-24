@@ -12,7 +12,7 @@ func (m model) View() string {
 	case HomePage:
 		return Homepage(m.termWidth, m.termHeight, m)
 	case ApiPage:
-		return Apipage(m, m.termWidth)
+		return ApipageWithViewport(m)
 	case RequestPage:
 		return ReqPage(m)
 	}
@@ -29,13 +29,12 @@ func Homepage(termWidth, termHeight int, m model) string {
 	b.WriteString(style1.Render(" This is the HomePage !"))
 	b.WriteString("\n\n")
 
-	// Build options with pointer
 	var items []string
 	for i := 0; i < len(m.Options); i++ {
 		api := m.Options[i]
 
 		text := api.Method + " " + api.Url
-		if i == m.pointer { // highlight selected option
+		if i == m.pointer {
 			text = style4.Render("> ") + style5.Render(text+"\n")
 		} else {
 			text = "   " + text + "\n"
@@ -43,21 +42,24 @@ func Homepage(termWidth, termHeight int, m model) string {
 		items = append(items, text)
 	}
 
-	// Render left box with styled options
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...))
-
-	// Commands box
 	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open")
-
-	// Combine side by side
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 	return b.String()
 }
 
-func Apipage(m model, termWidth int) string {
+func ApipageWithViewport(m model) string {
+	if !m.viewportReady {
+		return "Loading..."
+	}
 
+	helpText := HelpTextStyle.Render("\n\n↑/↓ j/k: scroll • space/b: page up/down • g/G: top/bottom • esc: back")
+	return m.apiViewport.View() + helpText
+}
+
+func BuildApiPageContent(m model, termWidth int) string {
 	style1 := HomePageStyle1(termWidth)
 	style3 := ResponseStyle(termWidth)
 
@@ -112,11 +114,8 @@ func ReqPage(m model) string {
 	b.WriteString("\n")
 
 	b.WriteString("Edit JSON body below:\n\n")
-
 	b.WriteString(style1.Render(m.jsonInput.View()))
-
 	b.WriteString("\n\n")
-
 	b.WriteString("Press Enter to send POST request...\n")
 
 	return b.String()

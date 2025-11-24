@@ -67,3 +67,6 @@ func ResponseStyle(termWidth int) lipgloss.Style {
 		Width(termWidth - 3).
 		Padding(1)
 }
+
+var HelpTextStyle = lipgloss.NewStyle().
+	Align(lipgloss.Center)
