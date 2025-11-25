@@ -91,7 +91,8 @@ func BuildApiPageContent(m model, termWidth int) string {
 		resp.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, ", ")))
 	}
 
-	resp.WriteString("\nBody:\n" + Response.Body + "\n")
+	formattedBody := FormatJSON(Response.Body)
+	resp.WriteString("\nBody:\n" + formattedBody + "\n")
 
 	b.WriteString(style1.Render("This is the Api-Page !"))
 	b.WriteString("\n\n")
@@ -119,4 +120,43 @@ func ReqPage(m model) string {
 	b.WriteString("Press Enter to send POST request...\n")
 
 	return b.String()
+}
+
+func FormatJSON(body string) string {
+	var formatted strings.Builder
+	indent := 0
+
+	for i := 0; i < len(body); i++ {
+		char := body[i]
+
+		switch char {
+		case '{', '[':
+			formatted.WriteByte(char)
+			formatted.WriteByte('\n')
+			indent++
+			formatted.WriteString(strings.Repeat("  ", indent))
+
+		case '}', ']':
+			formatted.WriteByte('\n')
+			indent--
+			formatted.WriteString(strings.Repeat("  ", indent))
+			formatted.WriteByte(char)
+
+		case ',':
+			formatted.WriteByte(char)
+			formatted.WriteByte('\n')
+			formatted.WriteString(strings.Repeat("  ", indent))
+
+		case ':':
+			formatted.WriteString(": ")
+
+		case ' ', '\t', '\n', '\r':
+			continue
+
+		default:
+			formatted.WriteByte(char)
+		}
+	}
+
+	return formatted.String()
 }
