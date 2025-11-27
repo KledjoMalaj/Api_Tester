@@ -5,6 +5,9 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fsnotify/fsnotify"
 )
 
 type Api struct {
@@ -47,4 +50,35 @@ func ReadFile() []Api {
 	}
 
 	return Apis
+}
+
+type fileChangedMsg []Api
+
+func watchFile(p *tea.Program) *fsnotify.Watcher {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := watcher.Add("APITEST.txt"); err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					newApis := ReadFile()
+					p.Send(fileChangedMsg(newApis))
+				}
+			case err := <-watcher.Errors:
+				if err != nil {
+					log.Println("Watcher error:", err)
+				}
+			}
+		}
+	}()
+
+	return watcher
 }

@@ -50,6 +50,9 @@ func main() {
 	m := NewModel(Options)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
+	watcher := watchFile(p)
+	defer watcher.Close()
+
 	if err := p.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}
