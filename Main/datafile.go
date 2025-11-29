@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -50,6 +51,33 @@ func ReadFile() []Api {
 	}
 
 	return Apis
+}
+
+func DeleteApi(selectedApi Api) []Api {
+	Apis := ReadFile()
+	var newApis []Api
+
+	for _, api := range Apis {
+		if !(api.Method == selectedApi.Method && api.Url == selectedApi.Url) {
+			newApis = append(newApis, api)
+		}
+	}
+
+	WriteFile(newApis)
+	return newApis
+}
+
+func WriteFile(Apis []Api) {
+	file, err := os.Create("APITEST.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	for _, a := range Apis {
+		fmt.Fprintf(file, "%s %s\n", a.Method, a.Url)
+	}
+
 }
 
 type fileChangedMsg []Api

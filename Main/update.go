@@ -75,6 +75,15 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 					m.apiViewport.GotoTop()
 				}
 			}
+		case "d":
+			if len(m.Options) > 0 {
+				m.SelectedApi = m.Options[m.pointer]
+				m.Options = DeleteApi(m.SelectedApi)
+				if m.pointer >= len(m.Options) && m.pointer > 0 {
+					m.pointer--
+				}
+			}
+
 		case "esc":
 			return m, tea.Quit
 		}

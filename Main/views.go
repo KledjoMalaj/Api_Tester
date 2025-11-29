@@ -43,7 +43,7 @@ func Homepage(termWidth, termHeight int, m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...))
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open")
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\nd -> Delete")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)

@@ -47,6 +47,7 @@ func (m model) Init() tea.Cmd {
 func main() {
 
 	Options := ReadFile()
+
 	m := NewModel(Options)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
