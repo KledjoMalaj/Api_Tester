@@ -17,6 +17,7 @@ const (
 )
 
 type model struct {
+	NewApiInput   textinput.Model
 	SelectedApi   Api
 	Options       []Api
 	CurrentPage   View
@@ -32,11 +33,16 @@ func NewModel(options []Api) model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter JSON Body here..."
 	ti.Focus()
+
+	ai := textinput.New()
+	ai.Placeholder = "Add New Api..."
+
 	return model{
 		CurrentPage:   HomePage,
 		Options:       options,
 		jsonInput:     ti,
 		viewportReady: false,
+		NewApiInput:   ai,
 	}
 }
 

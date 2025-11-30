@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -48,8 +50,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.NewApiInput.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.NewApiInput.Blur()
+				return m, nil
+			case "enter":
+				parts := strings.SplitN(m.NewApiInput.Value(), " ", 2)
+				newApi := Api{
+					Method: parts[0],
+					Url:    parts[1],
+				}
+				m.Options = append(m.Options, newApi)
+				WriteFile(m.Options)
+				m.NewApiInput.SetValue("")
+				m.NewApiInput.Blur()
+			}
+
+			m.NewApiInput, cmd = m.NewApiInput.Update(msg)
+			return m, cmd
+		}
+
 		switch msg.String() {
 		case "up", "k":
 			if m.pointer > 0 {
@@ -68,13 +94,15 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 			if m.SelectedApi.Method == "GET" {
 				m.CurrentPage = ApiPage
-
-				// Load content into viewport when entering ApiPage
 				if m.viewportReady {
 					m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
 					m.apiViewport.GotoTop()
 				}
 			}
+
+		case ":":
+			m.NewApiInput.Focus()
+
 		case "d":
 			if len(m.Options) > 0 {
 				m.SelectedApi = m.Options[m.pointer]
@@ -88,7 +116,9 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	}
-	return m, nil
+
+	m.NewApiInput, cmd = m.NewApiInput.Update(msg)
+	return m, cmd
 }
 
 func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
