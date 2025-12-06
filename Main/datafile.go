@@ -16,8 +16,27 @@ type Api struct {
 	Url    string
 }
 
+var fileName string = "APITEST.txt"
+
+func CreateFile() {
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+}
+
+func fileChecker() {
+	file, err := os.Open(fileName)
+	if err != nil {
+		CreateFile()
+	}
+	defer file.Close()
+}
+
 func ReadFile() []Api {
-	file, err := os.Open("APITEST.txt")
+	fileChecker()
+	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +87,7 @@ func DeleteApi(selectedApi Api) []Api {
 }
 
 func WriteFile(Apis []Api) {
-	file, err := os.Create("APITEST.txt")
+	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,7 +107,7 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 		log.Fatal(err)
 	}
 
-	if err := watcher.Add("APITEST.txt"); err != nil {
+	if err := watcher.Add(fileName); err != nil {
 		log.Fatal(err)
 	}
 
