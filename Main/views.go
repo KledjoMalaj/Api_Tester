@@ -30,8 +30,15 @@ func Homepage(termWidth, termHeight int, m model) string {
 	b.WriteString("\n\n")
 
 	var items []string
+
 	for i := 0; i < len(m.Options); i++ {
 		api := m.Options[i]
+
+		if i == m.pointer && m.editing {
+			line := style4.Render("> ") + m.editingApi.View() + "\n"
+			items = append(items, line)
+			continue
+		}
 
 		text := api.Method + " " + api.Url
 		if i == m.pointer {

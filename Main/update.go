@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -54,6 +55,27 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.editing {
+			switch msg.String() {
+			case "enter":
+
+				parts := strings.SplitN(m.editingApi.Value(), " ", 2)
+				newApi := Api{
+					Method: parts[0],
+					Url:    parts[1],
+				}
+				EditFile(m.pointer, newApi)
+				m.editingApi.Blur()
+				m.editing = false
+
+			case "esc":
+				m.editingApi.Blur()
+				m.editing = false
+			}
+
+			m.editingApi, cmd = m.editingApi.Update(msg)
+			return m, cmd
+		}
 
 		if m.NewApiInput.Focused() {
 			switch msg.String() {
@@ -111,6 +133,13 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 					m.pointer--
 				}
 			}
+
+		case "e":
+			m.editing = true
+			m.editingApi = textinput.New()
+			m.SelectedApi = m.Options[m.pointer]
+			m.editingApi.SetValue(m.SelectedApi.Method + " " + m.SelectedApi.Url)
+			m.editingApi.Focus()
 
 		case "esc":
 			return m, tea.Quit

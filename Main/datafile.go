@@ -129,3 +129,11 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 
 	return watcher
 }
+
+func EditFile(pointer int, updatedApi Api) {
+	Apis := ReadFile()
+
+	Apis[pointer] = updatedApi
+
+	WriteFile(Apis)
+}

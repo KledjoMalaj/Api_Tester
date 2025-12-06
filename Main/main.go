@@ -27,6 +27,8 @@ type model struct {
 	jsonInput     textinput.Model
 	apiViewport   viewport.Model
 	viewportReady bool
+	editingApi    textinput.Model
+	editing       bool
 }
 
 func NewModel(options []Api) model {
