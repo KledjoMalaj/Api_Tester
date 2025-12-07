@@ -50,7 +50,7 @@ func Homepage(termWidth, termHeight int, m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewApiInput.View()
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\nd -> Delete\n\n: -> Add")
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\nd -> Delete\n\n: -> Add\n\ne -> Edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)

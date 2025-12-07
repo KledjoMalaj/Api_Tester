@@ -110,11 +110,11 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			m.SelectedApi = m.Options[m.pointer]
 
-			if m.SelectedApi.Method == "POST" {
+			switch m.SelectedApi.Method {
+			case "POST", "DELETE", "PUT", "PATCH":
 				m.CurrentPage = RequestPage
-			}
 
-			if m.SelectedApi.Method == "GET" {
+			case "GET":
 				m.CurrentPage = ApiPage
 				if m.viewportReady {
 					m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
