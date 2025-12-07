@@ -12,26 +12,29 @@ type View int
 
 const (
 	HomePage View = iota
+	CollectionPage
 	ApiPage
 	RequestPage
 )
 
 type model struct {
-	NewApiInput   textinput.Model
-	SelectedApi   Api
-	Options       []Api
-	CurrentPage   View
-	termWidth     int
-	termHeight    int
-	pointer       int
-	jsonInput     textinput.Model
-	apiViewport   viewport.Model
-	viewportReady bool
-	editingApi    textinput.Model
-	editing       bool
+	NewApiInput        textinput.Model
+	Collections        []Collection
+	SelectedCollection Collection
+	SelectedApi        Api
+	Options            []Api
+	CurrentPage        View
+	termWidth          int
+	termHeight         int
+	pointer            int
+	jsonInput          textinput.Model
+	apiViewport        viewport.Model
+	viewportReady      bool
+	editingApi         textinput.Model
+	editing            bool
 }
 
-func NewModel(options []Api) model {
+func NewModel(options []Api, storage Storage) model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter JSON Body here..."
 	ti.Focus()
@@ -45,6 +48,7 @@ func NewModel(options []Api) model {
 		jsonInput:     ti,
 		viewportReady: false,
 		NewApiInput:   ai,
+		Collections:   storage.Collections,
 	}
 }
 
@@ -54,9 +58,11 @@ func (m model) Init() tea.Cmd {
 
 func main() {
 
+	Collections := ReadFilenew()
+
 	Options := ReadFile()
 
-	m := NewModel(Options)
+	m := NewModel(Options, Collections)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	watcher := watchFile(p)

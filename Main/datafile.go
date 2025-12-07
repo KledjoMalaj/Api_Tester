@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,12 +12,21 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-type Api struct {
-	Method string
-	Url    string
+type Collection struct {
+	Name     string `json:"name"`
+	Requests []Api  `json:"requests"`
 }
 
-var fileName string = "APITEST.txt"
+type Api struct {
+	Method string `json:"method"`
+	Url    string `json:"url"`
+}
+
+type Storage struct {
+	Collections []Collection `json:"collections"`
+}
+
+var fileName string = "APITEST.json"
 
 func CreateFile() {
 	file, err := os.Create(fileName)
@@ -32,6 +42,22 @@ func fileChecker() {
 		CreateFile()
 	}
 	defer file.Close()
+}
+
+func ReadFilenew() Storage {
+	fileChecker()
+	file, err := os.ReadFile(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var storage Storage
+	if len(file) == 0 {
+		return Storage{Collections: []Collection{}}
+	}
+	if err := json.Unmarshal(file, &storage); err != nil {
+		log.Fatal(err)
+	}
+	return storage
 }
 
 func ReadFile() []Api {
@@ -53,7 +79,6 @@ func ReadFile() []Api {
 
 		parts := strings.SplitN(line, " ", 2)
 		if len(parts) < 2 {
-			log.Println("Skipping invalid line:", line)
 			continue
 		}
 
