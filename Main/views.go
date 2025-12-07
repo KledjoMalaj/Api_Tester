@@ -10,7 +10,9 @@ import (
 func (m model) View() string {
 	switch m.CurrentPage {
 	case HomePage:
-		return Homepage(m.termWidth, m.termHeight, m)
+		return Homepage(m)
+	case CollectionPage:
+		return Collectionpage(m.termWidth, m.termHeight, m)
 	case ApiPage:
 		return ApipageWithViewport(m)
 	case RequestPage:
@@ -19,14 +21,39 @@ func (m model) View() string {
 	return ""
 }
 
-func Homepage(termWidth, termHeight int, m model) string {
+func Homepage(m model) string {
+	style3 := OptionsStyle(m.termWidth)
+
+	var b strings.Builder
+
+	collections := m.Collections
+
+	var items []string
+
+	for i := 0; i < len(collections); i++ {
+		text := collections[i].Name
+		if i == m.pointer {
+			text = style4.Render("> ") + style5.Render(text+"\n")
+		} else {
+			text = "   " + text + "\n"
+		}
+		items = append(items, text)
+	}
+
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n"
+	b.WriteString(leftBox)
+	return b.String()
+}
+
+func Collectionpage(termWidth, termHeight int, m model) string {
 	style1 := HomePageStyle1(termWidth)
 	style2 := HomePageStyle2(termWidth, termHeight)
 	style3 := OptionsStyle(termWidth)
 
 	var b strings.Builder
+	collectionName := m.SelectedCollection.Name
 
-	b.WriteString(style1.Render(" This is the HomePage !"))
+	b.WriteString(style1.Render(collectionName))
 	b.WriteString("\n\n")
 
 	var items []string
@@ -50,7 +77,7 @@ func Homepage(termWidth, termHeight int, m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewApiInput.View()
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\nd -> Delete\n\n: -> Add\n\ne -> Edit")
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)

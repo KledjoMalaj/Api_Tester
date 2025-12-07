@@ -38,6 +38,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case HomePage:
 			m, cmd := UpdateHomePage(m, msg)
 			return m, cmd
+		case CollectionPage:
+			m, cmd := UpdateCollectionPage(m, msg)
+			return m, cmd
 		case ApiPage:
 			m, cmd := UpdateApiPage(m, msg)
 			return m, cmd
@@ -51,6 +54,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			return m, tea.Quit
+		case "up", "k":
+			if m.pointer > 0 {
+				m.pointer--
+			}
+		case "down", "j":
+			if m.pointer < len(m.Collections)-1 {
+				m.pointer++
+			}
+		case "enter":
+			m.CurrentPage = CollectionPage
+			m.Options = m.Collections[m.pointer].Requests
+			m.SelectedCollection = m.Collections[m.pointer]
+			m.pointer = 0
+		}
+	}
+	return m, nil
+}
+
+func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -142,7 +169,8 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.editingApi.Focus()
 
 		case "esc":
-			return m, tea.Quit
+			m.CurrentPage = HomePage
+			m.pointer = 0
 		}
 	}
 
@@ -157,7 +185,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			m.CurrentPage = HomePage
+			m.CurrentPage = CollectionPage
 			return m, nil
 		case "up", "k":
 			m.apiViewport.LineUp(1)
@@ -193,7 +221,7 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.apiViewport.GotoTop()
 			}
 		case "esc":
-			m.CurrentPage = HomePage
+			m.CurrentPage = CollectionPage
 		}
 	}
 
