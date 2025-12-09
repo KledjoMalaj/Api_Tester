@@ -26,7 +26,7 @@ func Homepage(m model) string {
 
 	var b strings.Builder
 
-	collections := m.Collections
+	collections := m.storage.Collections
 
 	var items []string
 
@@ -58,8 +58,8 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 
 	var items []string
 
-	for i := 0; i < len(m.Options); i++ {
-		api := m.Options[i]
+	for i := 0; i < len(m.Apis); i++ {
+		api := m.Apis[i]
 
 		if i == m.pointer && m.editing {
 			line := style4.Render("> ") + m.editingApi.View() + "\n"
@@ -98,7 +98,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	style3 := ResponseStyle(termWidth)
 
 	var b strings.Builder
-	SelectedApi := m.Options[m.pointer]
+	SelectedApi := m.Apis[m.pointer]
 
 	var Response ApiResponse
 	if m.SelectedApi.Method == "POST" {

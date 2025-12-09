@@ -19,10 +19,11 @@ const (
 
 type model struct {
 	NewApiInput        textinput.Model
-	Collections        []Collection
+	storage            Storage
 	SelectedCollection Collection
+	collectionIndex    int
 	SelectedApi        Api
-	Options            []Api
+	Apis               []Api
 	CurrentPage        View
 	termWidth          int
 	termHeight         int
@@ -34,7 +35,7 @@ type model struct {
 	editing            bool
 }
 
-func NewModel(options []Api, storage Storage) model {
+func NewModel(storage Storage) model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter JSON Body here..."
 	ti.Focus()
@@ -44,11 +45,10 @@ func NewModel(options []Api, storage Storage) model {
 
 	return model{
 		CurrentPage:   HomePage,
-		Options:       options,
 		jsonInput:     ti,
 		viewportReady: false,
 		NewApiInput:   ai,
-		Collections:   storage.Collections,
+		storage:       storage,
 	}
 }
 
@@ -58,14 +58,12 @@ func (m model) Init() tea.Cmd {
 
 func main() {
 
-	Collections := ReadFilenew()
+	storage := ReadFilenew()
 
-	Options := ReadFile()
-
-	m := NewModel(Options, Collections)
+	m := NewModel(storage)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
-	watcher := watchFile(p)
+	watcher := watchFile(p, m.collectionIndex)
 	defer watcher.Close()
 
 	if err := p.Start(); err != nil {

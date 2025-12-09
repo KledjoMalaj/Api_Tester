@@ -12,7 +12,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case fileChangedMsg:
-		m.Options = msg
+		m.Apis = msg
 
 	case tea.WindowSizeMsg:
 
@@ -64,13 +64,14 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.pointer--
 			}
 		case "down", "j":
-			if m.pointer < len(m.Collections)-1 {
+			if m.pointer < len(m.storage.Collections)-1 {
 				m.pointer++
 			}
 		case "enter":
 			m.CurrentPage = CollectionPage
-			m.Options = m.Collections[m.pointer].Requests
-			m.SelectedCollection = m.Collections[m.pointer]
+			m.Apis = m.storage.Collections[m.pointer].Requests
+			m.SelectedCollection = m.storage.Collections[m.pointer]
+			m.collectionIndex = m.pointer
 			m.pointer = 0
 		}
 	}
@@ -86,12 +87,6 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			switch msg.String() {
 			case "enter":
 
-				parts := strings.SplitN(m.editingApi.Value(), " ", 2)
-				newApi := Api{
-					Method: parts[0],
-					Url:    parts[1],
-				}
-				EditFile(m.pointer, newApi)
 				m.editingApi.Blur()
 				m.editing = false
 
@@ -115,8 +110,8 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Method: parts[0],
 					Url:    parts[1],
 				}
-				m.Options = append(m.Options, newApi)
-				WriteFile(m.Options)
+				m.Apis = append(m.Apis, newApi)
+				AddApi(m.storage, m.collectionIndex, m.Apis)
 				m.NewApiInput.SetValue("")
 				m.NewApiInput.Blur()
 			}
@@ -131,11 +126,11 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.pointer--
 			}
 		case "down", "j":
-			if m.pointer < len(m.Options)-1 {
+			if m.pointer < len(m.Apis)-1 {
 				m.pointer++
 			}
 		case "enter":
-			m.SelectedApi = m.Options[m.pointer]
+			m.SelectedApi = m.Apis[m.pointer]
 
 			switch m.SelectedApi.Method {
 			case "POST", "DELETE", "PUT", "PATCH":
@@ -153,10 +148,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.NewApiInput.Focus()
 
 		case "d":
-			if len(m.Options) > 0 {
-				m.SelectedApi = m.Options[m.pointer]
-				m.Options = DeleteApi(m.SelectedApi)
-				if m.pointer >= len(m.Options) && m.pointer > 0 {
+			if len(m.Apis) > 0 {
+				m.SelectedApi = m.Apis[m.pointer]
+				if m.pointer >= len(m.Apis) && m.pointer > 0 {
 					m.pointer--
 				}
 			}
@@ -164,7 +158,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "e":
 			m.editing = true
 			m.editingApi = textinput.New()
-			m.SelectedApi = m.Options[m.pointer]
+			m.SelectedApi = m.Apis[m.pointer]
 			m.editingApi.SetValue(m.SelectedApi.Method + " " + m.SelectedApi.Url)
 			m.editingApi.Focus()
 

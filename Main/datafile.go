@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -12,6 +11,9 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+type Storage struct {
+	Collections []Collection `json:"collections"`
+}
 type Collection struct {
 	Name     string `json:"name"`
 	Requests []Api  `json:"requests"`
@@ -20,10 +22,6 @@ type Collection struct {
 type Api struct {
 	Method string `json:"method"`
 	Url    string `json:"url"`
-}
-
-type Storage struct {
-	Collections []Collection `json:"collections"`
 }
 
 var fileName string = "APITEST.json"
@@ -97,36 +95,24 @@ func ReadFile() []Api {
 	return Apis
 }
 
-func DeleteApi(selectedApi Api) []Api {
-	Apis := ReadFile()
-	var newApis []Api
-
-	for _, api := range Apis {
-		if !(api.Method == selectedApi.Method && api.Url == selectedApi.Url) {
-			newApis = append(newApis, api)
-		}
-	}
-
-	WriteFile(newApis)
-	return newApis
-}
-
-func WriteFile(Apis []Api) {
+func AddApi(storage Storage, collectionIndex int, apis []Api) {
 	file, err := os.Create(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	for _, a := range Apis {
-		fmt.Fprintf(file, "%s %s\n", a.Method, a.Url)
-	}
+	storage.Collections[collectionIndex].Requests = apis
 
+	encode := json.NewEncoder(file)
+	if err := encode.Encode(storage); err != nil {
+		log.Fatal(err)
+	}
 }
 
 type fileChangedMsg []Api
 
-func watchFile(p *tea.Program) *fsnotify.Watcher {
+func watchFile(p *tea.Program, collectionIndex int) *fsnotify.Watcher {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -141,8 +127,8 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					newApis := ReadFile()
-					p.Send(fileChangedMsg(newApis))
+					newApis := ReadFilenew()
+					p.Send(fileChangedMsg(newApis.Collections[collectionIndex].Requests))
 				}
 			case err := <-watcher.Errors:
 				if err != nil {
@@ -153,12 +139,4 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 	}()
 
 	return watcher
-}
-
-func EditFile(pointer int, updatedApi Api) {
-	Apis := ReadFile()
-
-	Apis[pointer] = updatedApi
-
-	WriteFile(Apis)
 }
