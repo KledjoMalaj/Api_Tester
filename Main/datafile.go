@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"log"
 	"os"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fsnotify/fsnotify"
@@ -57,44 +55,6 @@ func ReadFilenew() Storage {
 	}
 	return storage
 }
-
-func ReadFile() []Api {
-	fileChecker()
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	var Apis []Api
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) < 2 {
-			continue
-		}
-
-		newApi := Api{
-			Method: parts[0],
-			Url:    strings.Trim(parts[1], `"`),
-		}
-
-		Apis = append(Apis, newApi)
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	return Apis
-}
-
 func AddApi(storage Storage, collectionIndex int, apis []Api) {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -110,9 +70,23 @@ func AddApi(storage Storage, collectionIndex int, apis []Api) {
 	}
 }
 
-type fileChangedMsg []Api
+func AddCollection(storage Storage, collections []Collection) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
 
-func watchFile(p *tea.Program, collectionIndex int) *fsnotify.Watcher {
+	storage.Collections = collections
+	encode := json.NewEncoder(file)
+	if err := encode.Encode(storage); err != nil {
+		log.Fatal(err)
+	}
+}
+
+type fileChangedMsg Storage
+
+func watchFile(p *tea.Program) *fsnotify.Watcher {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -127,8 +101,8 @@ func watchFile(p *tea.Program, collectionIndex int) *fsnotify.Watcher {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					newApis := ReadFilenew()
-					p.Send(fileChangedMsg(newApis.Collections[collectionIndex].Requests))
+					newStorage := ReadFilenew()
+					p.Send(fileChangedMsg(newStorage))
 				}
 			case err := <-watcher.Errors:
 				if err != nil {
@@ -137,6 +111,5 @@ func watchFile(p *tea.Program, collectionIndex int) *fsnotify.Watcher {
 			}
 		}
 	}()
-
 	return watcher
 }

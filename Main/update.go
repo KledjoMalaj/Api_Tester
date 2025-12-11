@@ -12,7 +12,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case fileChangedMsg:
-		m.Apis = msg
+		m.storage = Storage(msg)
 
 	case tea.WindowSizeMsg:
 
@@ -54,8 +54,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.NewCollectionInput.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.NewCollectionInput.Blur()
+				return m, nil
+			case "enter":
+				collection := m.NewCollectionInput.Value()
+				newCollection := Collection{
+					Name: collection,
+				}
+				m.Collections = append(m.Collections, newCollection)
+				AddCollection(m.storage, m.Collections)
+				m.NewCollectionInput.SetValue("")
+				m.NewCollectionInput.Blur()
+
+			}
+			m.NewCollectionInput, cmd = m.NewCollectionInput.Update(msg)
+			return m, cmd
+		}
+
 		switch msg.String() {
 		case "esc":
 			return m, tea.Quit
@@ -69,10 +91,13 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			}
 		case "enter":
 			m.CurrentPage = CollectionPage
-			m.Apis = m.storage.Collections[m.pointer].Requests
 			m.SelectedCollection = m.storage.Collections[m.pointer]
+			m.Apis = m.SelectedCollection.Requests
 			m.collectionIndex = m.pointer
 			m.pointer = 0
+
+		case ":":
+			m.NewCollectionInput.Focus()
 		}
 	}
 	return m, nil

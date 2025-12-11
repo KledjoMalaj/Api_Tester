@@ -23,6 +23,7 @@ func (m model) View() string {
 
 func Homepage(m model) string {
 	style3 := OptionsStyle(m.termWidth)
+	style2 := HomePageStyle2(m.termWidth, m.termHeight)
 
 	var b strings.Builder
 
@@ -40,8 +41,11 @@ func Homepage(m model) string {
 		items = append(items, text)
 	}
 
-	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n"
-	b.WriteString(leftBox)
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewCollectionInput.View()
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open")
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+
+	b.WriteString(layout)
 	return b.String()
 }
 

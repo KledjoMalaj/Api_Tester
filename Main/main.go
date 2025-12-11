@@ -19,11 +19,13 @@ const (
 
 type model struct {
 	NewApiInput        textinput.Model
+	NewCollectionInput textinput.Model
 	storage            Storage
 	SelectedCollection Collection
 	collectionIndex    int
 	SelectedApi        Api
 	Apis               []Api
+	Collections        []Collection
 	CurrentPage        View
 	termWidth          int
 	termHeight         int
@@ -43,12 +45,17 @@ func NewModel(storage Storage) model {
 	ai := textinput.New()
 	ai.Placeholder = "Add New Api..."
 
+	collInput := textinput.New()
+	collInput.Placeholder = "Add New Collection..."
+
 	return model{
-		CurrentPage:   HomePage,
-		jsonInput:     ti,
-		viewportReady: false,
-		NewApiInput:   ai,
-		storage:       storage,
+		CurrentPage:        HomePage,
+		jsonInput:          ti,
+		viewportReady:      false,
+		NewApiInput:        ai,
+		NewCollectionInput: collInput,
+		storage:            storage,
+		Collections:        storage.Collections,
 	}
 }
 
@@ -63,7 +70,7 @@ func main() {
 	m := NewModel(storage)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
-	watcher := watchFile(p, m.collectionIndex)
+	watcher := watchFile(p)
 	defer watcher.Close()
 
 	if err := p.Start(); err != nil {
