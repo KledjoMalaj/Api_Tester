@@ -40,7 +40,7 @@ func fileChecker() {
 	defer file.Close()
 }
 
-func ReadFilenew() Storage {
+func ReadFile() Storage {
 	fileChecker()
 	file, err := os.ReadFile(fileName)
 	if err != nil {
@@ -84,6 +84,32 @@ func AddCollection(storage Storage, collections []Collection) {
 	}
 }
 
+func deleteApi(selectedApi Api, storage Storage, collectionIndex int) []Api {
+	Apis := storage.Collections[collectionIndex].Requests
+	var newApis []Api
+	for i := 0; i < len(Apis); i++ {
+		if !(Apis[i].Url == selectedApi.Url && Apis[i].Method == selectedApi.Method) {
+			newApis = append(newApis, Apis[i])
+		}
+	}
+	AddApi(storage, collectionIndex, newApis)
+	return newApis
+}
+func deleteCollection(selectedCollection Collection, storage Storage) []Collection {
+	Collections := storage.Collections
+	var newCollections []Collection
+
+	for i := 0; i < len(Collections); i++ {
+		if !(Collections[i].Name == selectedCollection.Name) {
+			newCollections = append(newCollections, Collections[i])
+		}
+	}
+
+	AddCollection(storage, newCollections)
+
+	return newCollections
+}
+
 type fileChangedMsg Storage
 
 func watchFile(p *tea.Program) *fsnotify.Watcher {
@@ -101,7 +127,7 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					newStorage := ReadFilenew()
+					newStorage := ReadFile()
 					p.Send(fileChangedMsg(newStorage))
 				}
 			case err := <-watcher.Errors:

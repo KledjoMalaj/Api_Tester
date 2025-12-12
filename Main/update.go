@@ -98,6 +98,15 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		case ":":
 			m.NewCollectionInput.Focus()
+
+		case "d":
+			if len(m.Collections) > 0 {
+				selectedCollection := m.storage.Collections[m.pointer]
+				m.Collections = deleteCollection(selectedCollection, m.storage)
+				if m.pointer >= len(m.Collections) && m.pointer > 0 {
+					m.pointer--
+				}
+			}
 		}
 	}
 	return m, nil
@@ -174,7 +183,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		case "d":
 			if len(m.Apis) > 0 {
-				m.SelectedApi = m.Apis[m.pointer]
+				selectedApi := m.Apis[m.pointer]
+				m.Apis = deleteApi(selectedApi, m.storage, m.collectionIndex)
+
 				if m.pointer >= len(m.Apis) && m.pointer > 0 {
 					m.pointer--
 				}

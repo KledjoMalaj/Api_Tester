@@ -65,7 +65,7 @@ func (m model) Init() tea.Cmd {
 
 func main() {
 
-	storage := ReadFilenew()
+	storage := ReadFile()
 
 	m := NewModel(storage)
 	p := tea.NewProgram(m, tea.WithAltScreen())
