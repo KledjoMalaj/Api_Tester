@@ -239,6 +239,48 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.editing {
+			switch msg.String() {
+			case "esc":
+				m.editingCurrentApi.Blur()
+				m.editing = false
+				// Rebuild to hide the input
+				if m.viewportReady {
+					m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
+				}
+				return m, nil
+
+			case "enter":
+				editApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingCurrentApi.Value())
+
+				// Update local state
+				m.storage = ReadFile()
+				m.Collections = m.storage.Collections
+				m.SelectedCollection = m.Collections[m.collectionIndex]
+				m.Apis = m.SelectedCollection.Requests
+				m.SelectedApi = m.Apis[m.pointer]
+
+				m.editingCurrentApi.Blur()
+				m.editing = false
+
+				// Rebuild content ONLY here with the new API - this will re-fetch
+				if m.viewportReady {
+					m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
+				}
+				return m, nil
+			}
+
+			m.editingCurrentApi, cmd = m.editingCurrentApi.Update(msg)
+
+			// Show typing but don't re-fetch API yet
+			if m.viewportReady {
+				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
+			}
+
+			return m, cmd
+		}
+
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
@@ -255,6 +297,17 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.apiViewport.GotoTop()
 		case "end", "G":
 			m.apiViewport.GotoBottom()
+
+		case "e":
+			m.editing = true
+			m.editingCurrentApi = textinput.New()
+			m.editingCurrentApi.SetValue(m.SelectedApi.Method + " " + m.SelectedApi.Url)
+			m.editingCurrentApi.Focus()
+
+			// Rebuild viewport to show the editing input
+			if m.viewportReady {
+				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
+			}
 		}
 	}
 

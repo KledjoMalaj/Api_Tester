@@ -35,6 +35,7 @@ type model struct {
 	viewportReady      bool
 	editingApi         textinput.Model
 	editingCollection  textinput.Model
+	editingCurrentApi  textinput.Model
 	editing            bool
 }
 

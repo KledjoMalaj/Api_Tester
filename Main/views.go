@@ -142,11 +142,15 @@ func BuildApiPageContent(m model, termWidth int) string {
 	b.WriteString(style1.Render("This is the Api-Page !"))
 	b.WriteString("\n\n")
 
-	b.WriteString(style3.Render(
-		"Selected Api is : " +
-			MethodStyle.Render(SelectedApi.Method) + " " +
-			UrlStyle.Render(SelectedApi.Url),
-	))
+	if m.editing {
+		b.WriteString(style3.Render("editing..." + m.editingCurrentApi.View()))
+	} else {
+		b.WriteString(style3.Render(
+			"Selected Api is : " +
+				MethodStyle.Render(SelectedApi.Method) + " " + UrlStyle.Render(SelectedApi.Url),
+		))
+	}
+
 	b.WriteString("\n\n")
 
 	b.WriteString(style3.Render("Response:\n\n" + resp.String()))
