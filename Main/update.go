@@ -55,8 +55,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.editing {
+			switch msg.String() {
+
+			case "esc":
+				m.editingCollection.Blur()
+				m.editing = false
+			case "enter":
+				editCollection(m.storage, m.SelectedCollection, m.editingCollection.Value())
+				m.editingApi.Blur()
+				m.editing = false
+			}
+
+			m.editingCollection, cmd = m.editingCollection.Update(msg)
+			return m, cmd
+		}
 
 		if m.NewCollectionInput.Focused() {
 			switch msg.String() {
@@ -79,8 +96,10 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 		}
 
 		switch msg.String() {
+
 		case "esc":
 			return m, tea.Quit
+
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
@@ -107,7 +126,15 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 					m.pointer--
 				}
 			}
+
+		case "e":
+			m.editing = true
+			m.editingCollection = textinput.New()
+			m.SelectedCollection = m.Collections[m.pointer]
+			m.editingCollection.SetValue(m.SelectedCollection.Name)
+			m.editingCollection.Focus()
 		}
+
 	}
 	return m, nil
 }
@@ -120,10 +147,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		if m.editing {
 			switch msg.String() {
 			case "enter":
-
+				editApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingApi.Value())
 				m.editingApi.Blur()
 				m.editing = false
-
 			case "esc":
 				m.editingApi.Blur()
 				m.editing = false

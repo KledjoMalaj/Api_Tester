@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fsnotify/fsnotify"
@@ -92,7 +93,9 @@ func deleteApi(selectedApi Api, storage Storage, collectionIndex int) []Api {
 			newApis = append(newApis, Apis[i])
 		}
 	}
-	AddApi(storage, collectionIndex, newApis)
+
+	WriteFile(storage)
+
 	return newApis
 }
 func deleteCollection(selectedCollection Collection, storage Storage) []Collection {
@@ -105,9 +108,49 @@ func deleteCollection(selectedCollection Collection, storage Storage) []Collecti
 		}
 	}
 
-	AddCollection(storage, newCollections)
+	WriteFile(storage)
 
 	return newCollections
+}
+
+func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi string) {
+	parts := strings.SplitN(newApi, " ", 2)
+	newApi1 := Api{
+		Method: parts[0],
+		Url:    parts[1],
+	}
+
+	Apis := storage.Collections[collectionIndex].Requests
+	for i := 0; i < len(Apis); i++ {
+		if Apis[i] == selectedApi {
+			Apis[i] = newApi1
+		}
+	}
+
+	WriteFile(storage)
+}
+
+func editCollection(storage Storage, selectedCollection Collection, newCollection string) {
+	Collections := storage.Collections
+	for i := 0; i < len(Collections); i++ {
+		if Collections[i].Name == selectedCollection.Name {
+			Collections[i].Name = newCollection
+		}
+	}
+	WriteFile(storage)
+}
+
+func WriteFile(storage Storage) {
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	encode := json.NewEncoder(file)
+	if err := encode.Encode(storage); err != nil {
+		log.Fatal(err)
+	}
 }
 
 type fileChangedMsg Storage

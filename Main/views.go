@@ -33,6 +33,13 @@ func Homepage(m model) string {
 
 	for i := 0; i < len(collections); i++ {
 		text := collections[i].Name
+
+		if i == m.pointer && m.editing {
+			line := style4.Render("> ") + m.editingCollection.View() + "\n"
+			items = append(items, line)
+			continue
+		}
+
 		if i == m.pointer {
 			text = style4.Render("> ") + style5.Render(text+"\n")
 		} else {
@@ -42,7 +49,7 @@ func Homepage(m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewCollectionInput.View()
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New")
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
@@ -81,7 +88,7 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewApiInput.View()
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New")
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
