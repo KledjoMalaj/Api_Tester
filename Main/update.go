@@ -47,6 +47,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case RequestPage:
 			m, cmd := UpdateReqPage(m, msg)
 			return m, cmd
+		case HeadersPage:
+			m, cmd := UpdateHeadersPage(m, msg)
+			return m, cmd
 		}
 	}
 
@@ -227,6 +230,10 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "esc":
 			m.CurrentPage = HomePage
 			m.pointer = 0
+		case "h":
+			m.CurrentPage = HeadersPage
+			m.SelectedApi = m.Apis[m.pointer]
+			m.pointer = 0
 		}
 	}
 
@@ -336,4 +343,34 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 	m.jsonInput, cmd = m.jsonInput.Update(msg)
 	return m, cmd
+}
+
+func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+
+		if m.addHeaderKey.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.addHeaderKey.SetValue("")
+				m.addHeaderKey.Blur()
+				return m, nil
+			case "enter":
+				headerKey := m.addHeaderKey.Value()
+				addHeaderKey(headerKey, m.storage, m.collectionIndex, m.SelectedApi)
+			}
+			m.addHeaderKey, cmd = m.addHeaderKey.Update(msg)
+			return m, cmd
+		}
+
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = CollectionPage
+			m.pointer = 0
+		case ":":
+			m.addHeaderKey.Focus()
+		}
+	}
+	return m, nil
 }

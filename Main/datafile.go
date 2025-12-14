@@ -19,8 +19,9 @@ type Collection struct {
 }
 
 type Api struct {
-	Method string `json:"method"`
-	Url    string `json:"url"`
+	Method string            `json:"method"`
+	Url    string            `json:"url"`
+	Header map[string]string `json:"header"`
 }
 
 var fileName string = "APITEST.json"
@@ -122,7 +123,7 @@ func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi strin
 
 	Apis := storage.Collections[collectionIndex].Requests
 	for i := 0; i < len(Apis); i++ {
-		if Apis[i] == selectedApi {
+		if Apis[i].Method == selectedApi.Method && Apis[i].Url == selectedApi.Url {
 			Apis[i] = newApi1
 		}
 	}
@@ -135,6 +136,18 @@ func editCollection(storage Storage, selectedCollection Collection, newCollectio
 	for i := 0; i < len(Collections); i++ {
 		if Collections[i].Name == selectedCollection.Name {
 			Collections[i].Name = newCollection
+		}
+	}
+	WriteFile(storage)
+}
+
+func addHeaderKey(headerKey string, storage Storage, collectionIndex int, selectedApi Api) {
+	Apis := storage.Collections[collectionIndex].Requests
+	m := make(map[string]string)
+	m[headerKey] = ""
+	for i := 0; i < len(Apis); i++ {
+		if Apis[i].Method == selectedApi.Method && Apis[i].Url == selectedApi.Url {
+			Apis[i].Header = m
 		}
 	}
 	WriteFile(storage)

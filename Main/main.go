@@ -15,6 +15,7 @@ const (
 	CollectionPage
 	ApiPage
 	RequestPage
+	HeadersPage
 )
 
 type model struct {
@@ -37,6 +38,9 @@ type model struct {
 	editingCollection  textinput.Model
 	editingCurrentApi  textinput.Model
 	editing            bool
+
+	addHeaderKey   textinput.Model
+	addHeaderValue textinput.Model
 }
 
 func NewModel(storage Storage) model {
@@ -50,6 +54,12 @@ func NewModel(storage Storage) model {
 	collInput := textinput.New()
 	collInput.Placeholder = "Add New Collection..."
 
+	addHeaderKey := textinput.New()
+	addHeaderKey.Placeholder = "Add Header Key..."
+
+	addHeaderValue := textinput.New()
+	addHeaderValue.Placeholder = "Add Header Value..."
+
 	return model{
 		CurrentPage:        HomePage,
 		jsonInput:          ti,
@@ -58,6 +68,8 @@ func NewModel(storage Storage) model {
 		NewCollectionInput: collInput,
 		storage:            storage,
 		Collections:        storage.Collections,
+		addHeaderKey:       addHeaderKey,
+		addHeaderValue:     addHeaderValue,
 	}
 }
 

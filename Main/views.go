@@ -17,6 +17,8 @@ func (m model) View() string {
 		return ApipageWithViewport(m)
 	case RequestPage:
 		return ReqPage(m)
+	case HeadersPage:
+		return HeadersPageView(m)
 	}
 	return ""
 }
@@ -208,4 +210,24 @@ func FormatJSON(body string) string {
 	}
 
 	return formatted.String()
+}
+
+func HeadersPageView(m model) string {
+	var b strings.Builder
+	b.WriteString("HEADER PAGE!!\n\n")
+
+	headers := m.SelectedApi.Header
+
+	if len(headers) == 0 {
+		b.WriteString("No headers\n\n")
+
+	} else {
+		for key, value := range headers {
+			b.WriteString(key + value)
+		}
+	}
+	b.WriteString("\n")
+	b.WriteString(m.addHeaderKey.View() + " " + "press : to add new Header Key")
+
+	return b.String()
 }
