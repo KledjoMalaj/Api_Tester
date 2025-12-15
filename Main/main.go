@@ -41,6 +41,8 @@ type model struct {
 
 	addHeaderKey   textinput.Model
 	addHeaderValue textinput.Model
+	Headers        []Header
+	ApiIndex       int
 }
 
 func NewModel(storage Storage) model {

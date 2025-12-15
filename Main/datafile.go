@@ -18,13 +18,18 @@ type Collection struct {
 	Requests []Api  `json:"requests"`
 }
 
-type Api struct {
-	Method string            `json:"method"`
-	Url    string            `json:"url"`
-	Header map[string]string `json:"header"`
+type Header struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
-var fileName string = "APITEST.json"
+type Api struct {
+	Method  string   `json:"method"`
+	Url     string   `json:"url"`
+	Headers []Header `json:"headers"`
+}
+
+var fileName string = "APITEST1.json"
 
 func CreateFile() {
 	file, err := os.Create(fileName)
@@ -141,15 +146,9 @@ func editCollection(storage Storage, selectedCollection Collection, newCollectio
 	WriteFile(storage)
 }
 
-func addHeaderKey(headerKey string, storage Storage, collectionIndex int, selectedApi Api) {
-	Apis := storage.Collections[collectionIndex].Requests
-	m := make(map[string]string)
-	m[headerKey] = ""
-	for i := 0; i < len(Apis); i++ {
-		if Apis[i].Method == selectedApi.Method && Apis[i].Url == selectedApi.Url {
-			Apis[i].Header = m
-		}
-	}
+func addHeaderKey(headers []Header, storage Storage, collectionIndex int, apiIndex int) {
+
+	storage.Collections[collectionIndex].Requests[apiIndex].Headers = headers
 	WriteFile(storage)
 }
 

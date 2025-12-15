@@ -216,18 +216,23 @@ func HeadersPageView(m model) string {
 	var b strings.Builder
 	b.WriteString("HEADER PAGE!!\n\n")
 
-	headers := m.SelectedApi.Header
+	headers := m.Headers
 
 	if len(headers) == 0 {
 		b.WriteString("No headers\n\n")
 
 	} else {
-		for key, value := range headers {
-			b.WriteString(key + value)
+		for i, h := range headers {
+			if m.pointer == i {
+				b.WriteString("> " + h.Key + ": " + h.Value + "\n")
+			} else {
+				b.WriteString("  " + h.Key + ": " + h.Value + "\n")
+			}
 		}
 	}
+
 	b.WriteString("\n")
-	b.WriteString(m.addHeaderKey.View() + " " + "press : to add new Header Key")
+	b.WriteString(m.addHeaderKey.View())
 
 	return b.String()
 }
