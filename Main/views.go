@@ -118,7 +118,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 		Response = PostAPiFunc(m)
 	}
 	if m.SelectedApi.Method == "GET" {
-		Response = FetchData(SelectedApi)
+		Response = FetchData(m.SelectedApi)
 	}
 
 	statusStyle := StatusOKStyle
@@ -132,8 +132,13 @@ func BuildApiPageContent(m model, termWidth int) string {
 	resp.WriteString(fmt.Sprintf("Status Code: %s\n", statusStyle.Render(fmt.Sprintf("%d", Response.StatusCode))))
 	resp.WriteString("Content Type: " + Response.ContentType + "\n")
 	resp.WriteString(fmt.Sprintf("Content Length: %d\n", Response.ContentLength))
-	resp.WriteString("\nHeaders:\n")
 
+	resp.WriteString("\nRequestHeaders :\n")
+	for i := 0; i < len(Response.RequestHeaders); i++ {
+		resp.WriteString(Response.RequestHeaders[i].Key + " " + Response.RequestHeaders[i].Value + "\n")
+	}
+
+	resp.WriteString("\nHeaders :\n")
 	for k, v := range Response.Headers {
 		resp.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, ", ")))
 	}
@@ -223,10 +228,19 @@ func HeadersPageView(m model) string {
 
 	} else {
 		for i, h := range headers {
-			if m.pointer == i {
-				b.WriteString("> " + h.Key + ": " + h.Value + "\n")
+			if h.Value != "" {
+				if m.pointer == i {
+					b.WriteString("> " + h.Key + " " + h.Value + "\n")
+				} else {
+					b.WriteString("  " + h.Key + " " + h.Value + "\n")
+				}
+
 			} else {
-				b.WriteString("  " + h.Key + ": " + h.Value + "\n")
+				if m.pointer == i {
+					b.WriteString("> " + h.Key + " " + m.addHeaderValue.View() + "\n")
+				} else {
+					b.WriteString("  " + h.Key + " " + h.Value + "\n")
+				}
 			}
 		}
 	}

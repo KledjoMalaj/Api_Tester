@@ -365,9 +365,26 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Key: headerKey,
 				}
 				m.Headers = append(m.Headers, newHeder)
-				addHeaderKey(m.Headers, m.storage, m.collectionIndex, m.ApiIndex)
+				addHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex)
+				m.addHeaderKey.SetValue("")
+				m.addHeaderKey.Blur()
 			}
 			m.addHeaderKey, cmd = m.addHeaderKey.Update(msg)
+			return m, cmd
+		}
+		if m.addHeaderValue.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.addHeaderValue.SetValue("")
+				m.addHeaderValue.Blur()
+				return m, nil
+			case "enter":
+				m.Headers[m.pointer].Value = m.addHeaderValue.Value()
+				addHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex)
+				m.addHeaderValue.SetValue("")
+				m.addHeaderValue.Blur()
+			}
+			m.addHeaderValue, cmd = m.addHeaderValue.Update(msg)
 			return m, cmd
 		}
 
@@ -378,6 +395,19 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		case ":":
 			m.addHeaderKey.Focus()
+
+		case "enter":
+			m.addHeaderValue.Focus()
+		case "d":
+			m.Headers = m.SelectedApi.Headers
+			if len(m.Headers) > 0 {
+				selectedHeader := m.Headers[m.pointer]
+				m.Headers = deleteHeader(selectedHeader, m.storage, m.collectionIndex, m.ApiIndex)
+
+				if m.pointer >= len(m.Headers) && m.pointer > 0 {
+					m.pointer--
+				}
+			}
 
 		case "up", "k":
 			if m.pointer > 0 {

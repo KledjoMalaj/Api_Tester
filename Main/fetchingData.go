@@ -7,15 +7,18 @@ import (
 )
 
 type ApiResponse struct {
-	StatusCode    int
-	Status        string
-	Body          string
-	Headers       http.Header
-	ContentType   string
-	ContentLength int64
+	StatusCode     int
+	Status         string
+	Body           string
+	Headers        http.Header
+	RequestHeaders []Header
+	ContentType    string
+	ContentLength  int64
 }
 
 func FetchData(SelectedApi Api) ApiResponse {
+	headers := SelectedApi.Headers
+
 	url := strings.TrimSpace(SelectedApi.Url)
 	url = strings.Trim(url, `"`)
 
@@ -26,8 +29,9 @@ func FetchData(SelectedApi Api) ApiResponse {
 		return ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 
-	// Optional: add headers if needed
-	req.Header.Set("User-Agent", "Go-Client")
+	for i := 0; i < len(headers); i++ {
+		req.Header.Set(headers[i].Key, headers[i].Value)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -39,18 +43,21 @@ func FetchData(SelectedApi Api) ApiResponse {
 	bodyBytes, _ := io.ReadAll(resp.Body)
 
 	return ApiResponse{
-		StatusCode:    resp.StatusCode,
-		Status:        resp.Status,
-		Body:          string(bodyBytes),
-		Headers:       resp.Header,
-		ContentType:   resp.Header.Get("Content-Type"),
-		ContentLength: resp.ContentLength,
+		StatusCode:     resp.StatusCode,
+		Status:         resp.Status,
+		Body:           string(bodyBytes),
+		Headers:        resp.Header,
+		RequestHeaders: SelectedApi.Headers,
+		ContentType:    resp.Header.Get("Content-Type"),
+		ContentLength:  resp.ContentLength,
 	}
 
 }
 
 func PostAPiFunc(m model) ApiResponse {
 	SelectedApi := m.SelectedApi
+	headers := m.SelectedApi.Headers
+
 	data := m.jsonInput.Value()
 	bodyReader := strings.NewReader(data)
 
@@ -64,7 +71,10 @@ func PostAPiFunc(m model) ApiResponse {
 		return ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	for i := 0; i < len(headers); i++ {
+		req.Header.Set(headers[i].Key, headers[i].Value)
+	}
+
 	// Send request
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -78,11 +88,12 @@ func PostAPiFunc(m model) ApiResponse {
 
 	// Return structured response
 	return ApiResponse{
-		StatusCode:    resp.StatusCode,
-		Status:        resp.Status,
-		Body:          string(bodyBytes),
-		Headers:       resp.Header,
-		ContentType:   resp.Header.Get("Content-Type"),
-		ContentLength: resp.ContentLength,
+		StatusCode:     resp.StatusCode,
+		Status:         resp.Status,
+		Body:           string(bodyBytes),
+		Headers:        resp.Header,
+		RequestHeaders: m.SelectedApi.Headers,
+		ContentType:    resp.Header.Get("Content-Type"),
+		ContentLength:  resp.ContentLength,
 	}
 }

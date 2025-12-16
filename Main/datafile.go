@@ -146,10 +146,25 @@ func editCollection(storage Storage, selectedCollection Collection, newCollectio
 	WriteFile(storage)
 }
 
-func addHeaderKey(headers []Header, storage Storage, collectionIndex int, apiIndex int) {
+func addHeader(headers []Header, storage Storage, collectionIndex int, apiIndex int) {
 
 	storage.Collections[collectionIndex].Requests[apiIndex].Headers = headers
 	WriteFile(storage)
+}
+func deleteHeader(selectedHeader Header, storage Storage, collectionIndex int, apiIndex int) []Header {
+	Headers := storage.Collections[collectionIndex].Requests[apiIndex].Headers
+
+	var newHeaders []Header
+	for i := 0; i < len(Headers); i++ {
+		if !(Headers[i].Key == selectedHeader.Key && Headers[i].Value == selectedHeader.Value) {
+			newHeaders = append(newHeaders, Headers[i])
+		}
+	}
+
+	storage.Collections[collectionIndex].Requests[apiIndex].Headers = newHeaders
+	WriteFile(storage)
+
+	return newHeaders
 }
 
 func WriteFile(storage Storage) {
