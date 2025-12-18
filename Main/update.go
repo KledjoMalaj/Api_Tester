@@ -229,7 +229,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		case "esc":
 			m.CurrentPage = HomePage
-			m.pointer = 0
+			m.pointer = m.collectionIndex
 
 		case "h":
 			m.CurrentPage = HeadersPage
@@ -391,7 +391,10 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
-			m.pointer = 0
+			m.pointer = m.ApiIndex
+
+			m.SelectedApi = m.Apis[m.ApiIndex]
+			m.Headers = m.SelectedApi.Headers
 
 		case ":":
 			m.addHeaderKey.Focus()
@@ -399,7 +402,6 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			m.addHeaderValue.Focus()
 		case "d":
-			m.Headers = m.SelectedApi.Headers
 			if len(m.Headers) > 0 {
 				selectedHeader := m.Headers[m.pointer]
 				m.Headers = deleteHeader(selectedHeader, m.storage, m.collectionIndex, m.ApiIndex)

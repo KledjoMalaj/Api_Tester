@@ -62,6 +62,7 @@ func ReadFile() Storage {
 	}
 	return storage
 }
+
 func AddApi(storage Storage, collectionIndex int, apis []Api) {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -100,6 +101,7 @@ func deleteApi(selectedApi Api, storage Storage, collectionIndex int) []Api {
 		}
 	}
 
+	storage.Collections[collectionIndex].Requests = newApis
 	WriteFile(storage)
 
 	return newApis
@@ -114,6 +116,7 @@ func deleteCollection(selectedCollection Collection, storage Storage) []Collecti
 		}
 	}
 
+	storage.Collections = newCollections
 	WriteFile(storage)
 
 	return newCollections
