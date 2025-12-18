@@ -5,7 +5,7 @@ import "github.com/charmbracelet/lipgloss"
 func HomePageStyle1(termWidth int) lipgloss.Style {
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color("210")).
-		PaddingRight(termWidth - 25).
+		PaddingRight(termWidth - 35).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("202")).
 		Align(lipgloss.Center)

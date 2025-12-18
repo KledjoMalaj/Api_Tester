@@ -59,7 +59,7 @@ func Homepage(m model) string {
 }
 
 func Collectionpage(termWidth, termHeight int, m model) string {
-	style1 := HomePageStyle1(termWidth)
+	style1 := HomePageStyle1(termWidth + 21)
 	style2 := HomePageStyle2(termWidth, termHeight)
 	style3 := OptionsStyle(termWidth)
 
@@ -217,33 +217,45 @@ func FormatJSON(body string) string {
 }
 
 func HeadersPageView(m model) string {
+	style1 := HomePageStyle1(m.termWidth)
+	style2 := OptionsStyle(m.termWidth)
+	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
+
 	var b strings.Builder
-	b.WriteString("HEADER PAGE!!\n\n")
+	b.WriteString(style1.Render(name))
 
 	headers := m.Headers
+	b.WriteString("\n")
+
+	var items []string
 
 	if len(headers) == 0 {
-		b.WriteString("No headers\n\n")
+		line := style4.Render("No headers\n\n")
+		items = append(items, line)
 
 	} else {
 		for i, h := range headers {
+			var line string
 			if h.Value != "" {
 				if m.pointer == i {
-					b.WriteString("> " + h.Key + " " + h.Value + "\n")
+					line = style4.Render("> ") + style5.Render(h.Key+" "+h.Value+"\n")
 				} else {
-					b.WriteString("  " + h.Key + " " + h.Value + "\n")
+					line = style4.Render("   ") + style5.Render(h.Key+" "+h.Value+"\n")
 				}
+				items = append(items, line)
 
 			} else {
 				if m.pointer == i {
-					b.WriteString("> " + h.Key + " " + m.addHeaderValue.View() + "\n")
+					line = style4.Render("> ") + style5.Render(h.Key+" "+m.addHeaderValue.View()+"\n")
 				} else {
-					b.WriteString("  " + h.Key + " " + h.Value + "\n")
+					line = style4.Render("   ") + style5.Render(h.Key+" "+h.Value+"\n")
 				}
+				items = append(items, line)
 			}
 		}
 	}
 
+	b.WriteString(style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
 	b.WriteString("\n")
 	b.WriteString(m.addHeaderKey.View())
 
