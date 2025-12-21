@@ -44,8 +44,9 @@ type model struct {
 	Headers        []Header
 	ApiIndex       int
 
-	newBodyFieldInput textinput.Model
-	BodyFields        []BodyField
+	newBodyFieldInput   textinput.Model
+	bodyFiledValueInput textinput.Model
+	BodyFields          []BodyField
 }
 
 func NewModel(storage Storage) model {
@@ -68,17 +69,21 @@ func NewModel(storage Storage) model {
 	newBodyField := textinput.New()
 	newBodyField.Placeholder = "Add New Body Field..."
 
+	bodyFiledValue := textinput.New()
+	bodyFiledValue.Placeholder = "Add new Body Field Value..."
+
 	return model{
-		CurrentPage:        HomePage,
-		jsonInput:          ti,
-		viewportReady:      false,
-		NewApiInput:        ai,
-		NewCollectionInput: collInput,
-		storage:            storage,
-		Collections:        storage.Collections,
-		addHeaderKey:       addHeaderKey,
-		addHeaderValue:     addHeaderValue,
-		newBodyFieldInput:  newBodyField,
+		CurrentPage:         HomePage,
+		jsonInput:           ti,
+		viewportReady:       false,
+		NewApiInput:         ai,
+		NewCollectionInput:  collInput,
+		storage:             storage,
+		Collections:         storage.Collections,
+		addHeaderKey:        addHeaderKey,
+		addHeaderValue:      addHeaderValue,
+		newBodyFieldInput:   newBodyField,
+		bodyFiledValueInput: bodyFiledValue,
 	}
 }
 

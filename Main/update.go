@@ -201,6 +201,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.BodyFields = m.SelectedApi.BodyField
 				m.ApiIndex = m.pointer
 				m.CurrentPage = RequestPage
+				m.pointer = 0
 
 			case "GET":
 				m.CurrentPage = ApiPage
@@ -336,18 +337,36 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		if m.newBodyFieldInput.Focused() {
 			switch msg.String() {
-
 			case "esc":
 				m.newBodyFieldInput.Blur()
 				m.newBodyFieldInput.SetValue("")
 			case "enter":
 				newBodyFieldKey := m.newBodyFieldInput.Value()
-				m.BodyFields = addBodyField(m.storage, m.collectionIndex, m.ApiIndex, newBodyFieldKey)
+				newBodyFiled := BodyField{
+					Key:   newBodyFieldKey,
+					Value: "",
+				}
+				m.BodyFields = append(m.BodyFields, newBodyFiled)
+				m.BodyFields = addBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
 				m.newBodyFieldInput.SetValue("")
 				m.newBodyFieldInput.Blur()
 			}
-
 			m.newBodyFieldInput, cmd = m.newBodyFieldInput.Update(msg)
+			return m, cmd
+		}
+		if m.bodyFiledValueInput.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.bodyFiledValueInput.Blur()
+				m.bodyFiledValueInput.SetValue("")
+			case "enter":
+				newBodyFieldValue := m.bodyFiledValueInput.Value()
+				m.BodyFields[m.pointer].Value = newBodyFieldValue
+				addBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
+				m.bodyFiledValueInput.SetValue("")
+				m.bodyFiledValueInput.Blur()
+			}
+			m.bodyFiledValueInput, cmd = m.bodyFiledValueInput.Update(msg)
 			return m, cmd
 		}
 
@@ -359,10 +378,20 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
 				m.apiViewport.GotoTop()
 			}
+		case "v":
+			m.bodyFiledValueInput.Focus()
 		case ":":
 			m.newBodyFieldInput.Focus()
 		case "esc":
 			m.CurrentPage = CollectionPage
+		case "up", "k":
+			if m.pointer > 0 {
+				m.pointer--
+			}
+		case "down", "j":
+			if m.pointer < len(m.BodyFields)-1 {
+				m.pointer++
+			}
 		}
 	}
 

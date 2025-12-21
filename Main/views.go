@@ -170,19 +170,27 @@ func ReqPage(m model) string {
 
 	bodyFields := m.BodyFields
 
-	for i := 0; i < len(bodyFields); i++ {
-		b.WriteString(bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+	if len(bodyFields) == 0 {
+		b.WriteString("No body fields ... \n")
+	} else {
+		for i := 0; i < len(bodyFields); i++ {
+			if bodyFields[i].Value != "" {
+				if m.pointer == i {
+					b.WriteString(">  " + bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+				} else {
+					b.WriteString(bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+				}
+			} else {
+				if m.pointer == i {
+					b.WriteString(">  " + bodyFields[i].Key + " : " + m.bodyFiledValueInput.View() + "\n")
+				} else {
+					b.WriteString(bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+				}
+			}
+		}
 	}
 
 	b.WriteString(m.newBodyFieldInput.View())
-
-	style1 := InputStyle(m.termWidth)
-
-	b.WriteString("\n")
-	b.WriteString("Edit JSON body below:\n\n")
-	b.WriteString(style1.Render(m.jsonInput.View()))
-	b.WriteString("\n\n")
-	b.WriteString("Press Enter to send POST request...\n")
 
 	return b.String()
 }

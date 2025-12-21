@@ -175,17 +175,10 @@ func deleteHeader(selectedHeader Header, storage Storage, collectionIndex int, a
 	return newHeaders
 }
 
-func addBodyField(storage Storage, collectionIndex int, apiIndex int, newBodyFieldKey string) []BodyField {
-	bodyFields := storage.Collections[collectionIndex].Requests[apiIndex].BodyField
-	newBodyField := BodyField{
-		Key: newBodyFieldKey,
-	}
-	newBodyFields := append(bodyFields, newBodyField)
-
-	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = newBodyFields
-
+func addBodyField(storage Storage, collectionIndex int, apiIndex int, bodyFields []BodyField) []BodyField {
+	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = bodyFields
 	WriteFile(storage)
-	return newBodyFields
+	return bodyFields
 }
 
 func WriteFile(storage Storage) {
