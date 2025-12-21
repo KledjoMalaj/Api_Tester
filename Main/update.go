@@ -197,6 +197,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 			switch m.SelectedApi.Method {
 			case "POST", "DELETE", "PUT", "PATCH":
+				m.SelectedApi = m.Apis[m.pointer]
+				m.BodyFields = m.SelectedApi.BodyField
+				m.ApiIndex = m.pointer
 				m.CurrentPage = RequestPage
 
 			case "GET":
@@ -330,15 +333,34 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.newBodyFieldInput.Focused() {
+			switch msg.String() {
+
+			case "esc":
+				m.newBodyFieldInput.Blur()
+				m.newBodyFieldInput.SetValue("")
+			case "enter":
+				newBodyFieldKey := m.newBodyFieldInput.Value()
+				m.BodyFields = addBodyField(m.storage, m.collectionIndex, m.ApiIndex, newBodyFieldKey)
+				m.newBodyFieldInput.SetValue("")
+				m.newBodyFieldInput.Blur()
+			}
+
+			m.newBodyFieldInput, cmd = m.newBodyFieldInput.Update(msg)
+			return m, cmd
+		}
+
 		switch msg.String() {
 		case "enter":
 			m.CurrentPage = ApiPage
-
 			// Load content into viewport when entering ApiPage from RequestPage
 			if m.viewportReady {
 				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
 				m.apiViewport.GotoTop()
 			}
+		case ":":
+			m.newBodyFieldInput.Focus()
 		case "esc":
 			m.CurrentPage = CollectionPage
 		}

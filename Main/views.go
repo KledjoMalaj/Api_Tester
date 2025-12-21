@@ -147,6 +147,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	resp.WriteString("\nBody:\n" + formattedBody + "\n")
 
 	b.WriteString(style1.Render("This is the Api-Page !"))
+
 	b.WriteString("\n\n")
 	if m.editing {
 		b.WriteString(style3.Render("editing..." + m.editingCurrentApi.View()))
@@ -166,9 +167,18 @@ func BuildApiPageContent(m model, termWidth int) string {
 
 func ReqPage(m model) string {
 	var b strings.Builder
-	style1 := InputStyle(m.termWidth)
-	b.WriteString("\n")
 
+	bodyFields := m.BodyFields
+
+	for i := 0; i < len(bodyFields); i++ {
+		b.WriteString(bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+	}
+
+	b.WriteString(m.newBodyFieldInput.View())
+
+	style1 := InputStyle(m.termWidth)
+
+	b.WriteString("\n")
 	b.WriteString("Edit JSON body below:\n\n")
 	b.WriteString(style1.Render(m.jsonInput.View()))
 	b.WriteString("\n\n")

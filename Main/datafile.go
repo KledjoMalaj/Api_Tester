@@ -22,11 +22,16 @@ type Header struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+type BodyField struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 
 type Api struct {
-	Method  string   `json:"method"`
-	Url     string   `json:"url"`
-	Headers []Header `json:"headers"`
+	Method    string      `json:"method"`
+	Url       string      `json:"url"`
+	Headers   []Header    `json:"headers"`
+	BodyField []BodyField `json:"bodyFields"`
 }
 
 var fileName string = "APITEST1.json"
@@ -168,6 +173,19 @@ func deleteHeader(selectedHeader Header, storage Storage, collectionIndex int, a
 	WriteFile(storage)
 
 	return newHeaders
+}
+
+func addBodyField(storage Storage, collectionIndex int, apiIndex int, newBodyFieldKey string) []BodyField {
+	bodyFields := storage.Collections[collectionIndex].Requests[apiIndex].BodyField
+	newBodyField := BodyField{
+		Key: newBodyFieldKey,
+	}
+	newBodyFields := append(bodyFields, newBodyField)
+
+	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = newBodyFields
+
+	WriteFile(storage)
+	return newBodyFields
 }
 
 func WriteFile(storage Storage) {

@@ -43,6 +43,9 @@ type model struct {
 	addHeaderValue textinput.Model
 	Headers        []Header
 	ApiIndex       int
+
+	newBodyFieldInput textinput.Model
+	BodyFields        []BodyField
 }
 
 func NewModel(storage Storage) model {
@@ -62,6 +65,9 @@ func NewModel(storage Storage) model {
 	addHeaderValue := textinput.New()
 	addHeaderValue.Placeholder = "Add Header Value..."
 
+	newBodyField := textinput.New()
+	newBodyField.Placeholder = "Add New Body Field..."
+
 	return model{
 		CurrentPage:        HomePage,
 		jsonInput:          ti,
@@ -72,6 +78,7 @@ func NewModel(storage Storage) model {
 		Collections:        storage.Collections,
 		addHeaderKey:       addHeaderKey,
 		addHeaderValue:     addHeaderValue,
+		newBodyFieldInput:  newBodyField,
 	}
 }
 
