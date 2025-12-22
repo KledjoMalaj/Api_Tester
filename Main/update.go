@@ -392,6 +392,15 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			if m.pointer < len(m.BodyFields)-1 {
 				m.pointer++
 			}
+		case "d":
+			if len(m.BodyFields) > 0 {
+				selectedBodyField := m.BodyFields[m.pointer]
+				m.BodyFields = deleteBodyField(selectedBodyField, m.storage, m.collectionIndex, m.ApiIndex)
+
+				if m.pointer >= len(m.BodyFields) && m.pointer > 0 {
+					m.pointer--
+				}
+			}
 		}
 	}
 

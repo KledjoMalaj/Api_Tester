@@ -181,6 +181,21 @@ func addBodyField(storage Storage, collectionIndex int, apiIndex int, bodyFields
 	return bodyFields
 }
 
+func deleteBodyField(selectedBodyField BodyField, storage Storage, collectionIndex int, apiIndex int) []BodyField {
+	bodyFields := storage.Collections[collectionIndex].Requests[apiIndex].BodyField
+
+	var NewBodyFields []BodyField
+	for i := 0; i < len(bodyFields); i++ {
+		if !(bodyFields[i].Key == selectedBodyField.Key && bodyFields[i].Value == selectedBodyField.Value) {
+			NewBodyFields = append(NewBodyFields, bodyFields[i])
+		}
+	}
+	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = NewBodyFields
+
+	WriteFile(storage)
+	return NewBodyFields
+}
+
 func WriteFile(storage Storage) {
 	file, err := os.Create(fileName)
 	if err != nil {

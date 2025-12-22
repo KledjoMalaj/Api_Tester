@@ -166,30 +166,48 @@ func BuildApiPageContent(m model, termWidth int) string {
 }
 
 func ReqPage(m model) string {
+	style1 := HomePageStyle1(m.termWidth)
+	style2 := OptionsStyle(m.termWidth)
+
+	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
+
 	var b strings.Builder
 
 	bodyFields := m.BodyFields
 
+	b.WriteString(style1.Render(name))
+	b.WriteString("\n")
+
+	var items []string
+
 	if len(bodyFields) == 0 {
-		b.WriteString("No body fields ... \n")
+		line := style4.Render("No Request Fields\n\n")
+		items = append(items, line)
+
 	} else {
 		for i := 0; i < len(bodyFields); i++ {
+			var line string
 			if bodyFields[i].Value != "" {
 				if m.pointer == i {
-					b.WriteString(">  " + bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+					line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+bodyFields[i].Value+"\n")
 				} else {
-					b.WriteString(bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+					line = style4.Render("   ") + (bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
 				}
+
+				items = append(items, line)
 			} else {
 				if m.pointer == i {
-					b.WriteString(">  " + bodyFields[i].Key + " : " + m.bodyFiledValueInput.View() + "\n")
+					line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+m.bodyFiledValueInput.View()+"\n")
 				} else {
-					b.WriteString(bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
+					line = style4.Render("   ") + (bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
 				}
+				items = append(items, line)
 			}
 		}
 	}
 
+	b.WriteString(style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
+	b.WriteString("\n")
 	b.WriteString(m.newBodyFieldInput.View())
 
 	return b.String()
@@ -258,7 +276,7 @@ func HeadersPageView(m model) string {
 				if m.pointer == i {
 					line = style4.Render("> ") + style5.Render(h.Key+" "+h.Value+"\n")
 				} else {
-					line = style4.Render("   ") + style5.Render(h.Key+" "+h.Value+"\n")
+					line = style4.Render("   ") + (h.Key + " " + h.Value + "\n")
 				}
 				items = append(items, line)
 
@@ -266,7 +284,7 @@ func HeadersPageView(m model) string {
 				if m.pointer == i {
 					line = style4.Render("> ") + style5.Render(h.Key+" "+m.addHeaderValue.View()+"\n")
 				} else {
-					line = style4.Render("   ") + style5.Render(h.Key+" "+h.Value+"\n")
+					line = style4.Render("   ") + (h.Key + " " + h.Value + "\n")
 				}
 				items = append(items, line)
 			}
