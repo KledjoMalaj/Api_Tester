@@ -298,6 +298,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
+			m.pointer = 0
 			return m, nil
 		case "up", "k":
 			m.apiViewport.LineUp(1)

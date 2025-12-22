@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -58,7 +59,8 @@ func PostAPiFunc(m model) ApiResponse {
 	SelectedApi := m.SelectedApi
 	headers := m.SelectedApi.Headers
 
-	data := m.jsonInput.Value()
+	data := parseData(SelectedApi)
+
 	bodyReader := strings.NewReader(data)
 
 	url := strings.TrimSpace(SelectedApi.Url)
@@ -96,4 +98,27 @@ func PostAPiFunc(m model) ApiResponse {
 		ContentType:    resp.Header.Get("Content-Type"),
 		ContentLength:  resp.ContentLength,
 	}
+}
+func parseData(selectedApi Api) string {
+	if len(selectedApi.BodyField) == 0 {
+		return "{}"
+	}
+
+	// Build JSON object
+	var b strings.Builder
+	b.WriteString("{\n")
+
+	for i, field := range selectedApi.BodyField {
+		// Add key-value pair
+		b.WriteString(fmt.Sprintf("  \"%s\": \"%s\"", field.Key, field.Value))
+
+		// Add comma if not the last item
+		if i < len(selectedApi.BodyField)-1 {
+			b.WriteString(",")
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString("}")
+	return b.String()
 }

@@ -111,7 +111,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	style3 := ResponseStyle(termWidth)
 
 	var b strings.Builder
-	SelectedApi := m.Apis[m.pointer]
+	SelectedApi := m.SelectedApi
 
 	var Response ApiResponse
 	if m.SelectedApi.Method == "POST" {
