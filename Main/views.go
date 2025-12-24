@@ -107,8 +107,9 @@ func ApipageWithViewport(m model) string {
 }
 
 func BuildApiPageContent(m model, termWidth int) string {
-	style1 := HomePageStyle1(termWidth)
+	style1 := TitleStyle(termWidth)
 	style3 := ResponseStyle(termWidth)
+	style2 := statusLine(termWidth)
 
 	var b strings.Builder
 	SelectedApi := m.SelectedApi
@@ -129,7 +130,8 @@ func BuildApiPageContent(m model, termWidth int) string {
 	var resp strings.Builder
 
 	resp.WriteString("Status: " + statusStyle.Render(Response.Status) + "\n")
-	resp.WriteString(fmt.Sprintf("Status Code: %s\n", statusStyle.Render(fmt.Sprintf("%d", Response.StatusCode))))
+	resp.WriteString(fmt.Sprintf("Status Code: %s\n", statusStyle.Render(fmt.Sprintf("%d \n", Response.StatusCode))))
+	resp.WriteString(style2.Render(" "))
 	resp.WriteString("Content Type: " + Response.ContentType + "\n")
 	resp.WriteString(fmt.Sprintf("Content Length: %d\n", Response.ContentLength))
 
@@ -142,6 +144,8 @@ func BuildApiPageContent(m model, termWidth int) string {
 	for k, v := range Response.Headers {
 		resp.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, ", ")))
 	}
+
+	resp.WriteString("\n" + style2.Render(" "))
 
 	formattedBody := FormatJSON(Response.Body)
 	resp.WriteString("\nBody:\n" + formattedBody + "\n")
@@ -166,8 +170,9 @@ func BuildApiPageContent(m model, termWidth int) string {
 }
 
 func ReqPage(m model) string {
-	style1 := HomePageStyle1(m.termWidth)
+	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
+	style3 := HomePageStyle2(m.termWidth, m.termHeight)
 
 	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
 
@@ -206,7 +211,11 @@ func ReqPage(m model) string {
 		}
 	}
 
-	b.WriteString(style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\nv -> Add Value")
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+
+	b.WriteString(layout)
 	b.WriteString("\n")
 	b.WriteString(m.newBodyFieldInput.View())
 
@@ -253,8 +262,10 @@ func FormatJSON(body string) string {
 }
 
 func HeadersPageView(m model) string {
-	style1 := HomePageStyle1(m.termWidth)
+	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
+	style3 := HomePageStyle2(m.termWidth, m.termHeight)
+
 	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
 
 	var b strings.Builder
@@ -291,7 +302,11 @@ func HeadersPageView(m model) string {
 		}
 	}
 
-	b.WriteString(style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val ")
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+
+	b.WriteString(layout)
 	b.WriteString("\n")
 	b.WriteString(m.addHeaderKey.View())
 

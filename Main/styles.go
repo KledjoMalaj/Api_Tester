@@ -7,7 +7,16 @@ func HomePageStyle1(termWidth int) lipgloss.Style {
 		Foreground(lipgloss.Color("210")).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("202")).
-		Width(termWidth - 24).
+		Width(termWidth - 23).
+		Align(lipgloss.Center)
+}
+
+func TitleStyle(termWidth int) lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("210")).
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("202")).
+		Width(termWidth - 3).
 		Align(lipgloss.Center)
 }
 
@@ -47,8 +56,13 @@ var UrlStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("4")).
 	Bold(true)
 
-var StatusOKStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))   // Green
-var StatusErrorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("9")) // Red
+var StatusOKStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("10"))
+
+// Green
+
+var StatusErrorStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("9")) // Red
 
 func InputStyle(termWidth int) lipgloss.Style {
 	return lipgloss.NewStyle().
@@ -66,6 +80,14 @@ func ResponseStyle(termWidth int) lipgloss.Style {
 		BorderForeground(lipgloss.Color("#3C3C3C")).
 		Width(termWidth - 3).
 		Padding(1)
+}
+
+func statusLine(termWidth int) lipgloss.Style {
+	return lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#3C3C3C")).
+		BorderTop(true).
+		Width(termWidth - 5)
 }
 
 var HelpTextStyle = lipgloss.NewStyle().
