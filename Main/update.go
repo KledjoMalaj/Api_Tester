@@ -169,6 +169,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				parts := strings.SplitN(m.NewApiInput.Value(), " ", 2)
+				if len(parts) < 2 {
+					return m, nil
+				}
 				newApi := Api{
 					Method: parts[0],
 					Url:    parts[1],
