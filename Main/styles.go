@@ -92,3 +92,9 @@ func statusLine(termWidth int) lipgloss.Style {
 
 var HelpTextStyle = lipgloss.NewStyle().
 	Align(lipgloss.Center)
+
+var bodyElementStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("10"))
+
+var bodyElementStyle2 = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("210"))

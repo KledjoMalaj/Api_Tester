@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -26,9 +28,12 @@ func (m model) View() string {
 func Homepage(m model) string {
 	style3 := OptionsStyle(m.termWidth)
 	style2 := HomePageStyle2(m.termWidth, m.termHeight)
+	style1 := TitleStyle(m.termWidth)
 
 	var b strings.Builder
 
+	b.WriteString(style1.Render("Collections "))
+	b.WriteString("\n")
 	collections := m.storage.Collections
 
 	var items []string
@@ -138,17 +143,17 @@ func BuildApiPageContent(m model, termWidth int) string {
 
 	resp.WriteString("\nRequestHeaders :\n")
 	for i := 0; i < len(Response.RequestHeaders); i++ {
-		resp.WriteString(Response.RequestHeaders[i].Key + " " + Response.RequestHeaders[i].Value + "\n")
+		resp.WriteString(" " + Response.RequestHeaders[i].Key + " : " + Response.RequestHeaders[i].Value + "\n")
 	}
 
 	resp.WriteString("\nHeaders :\n")
 	for k, v := range Response.Headers {
-		resp.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, ", ")))
+		resp.WriteString(fmt.Sprintf("  %s : %s\n", k, strings.Join(v, ", ")))
 	}
 
 	resp.WriteString("\n" + style2.Render(" "))
 
-	formattedBody := FormatJSON(Response.Body)
+	formattedBody := FormatJSON(Response.Body, bodyElementStyle, bodyElementStyle2)
 	resp.WriteString("\nBody:\n" + formattedBody + "\n")
 
 	b.WriteString(style1.Render("This is the Api-Page !"))
@@ -223,43 +228,59 @@ func ReqPage(m model) string {
 	return b.String()
 }
 
-func FormatJSON(body string) string {
-	var formatted strings.Builder
-	indent := 0
-
-	for i := 0; i < len(body); i++ {
-		char := body[i]
-
-		switch char {
-		case '{', '[':
-			formatted.WriteByte(char)
-			formatted.WriteByte('\n')
-			indent++
-			formatted.WriteString(strings.Repeat("  ", indent))
-
-		case '}', ']':
-			formatted.WriteByte('\n')
-			indent--
-			formatted.WriteString(strings.Repeat("  ", indent))
-			formatted.WriteByte(char)
-
-		case ',':
-			formatted.WriteByte(char)
-			formatted.WriteByte('\n')
-			formatted.WriteString(strings.Repeat("  ", indent))
-
-		case ':':
-			formatted.WriteString(": ")
-
-		case ' ', '\t', '\n', '\r':
-			continue
-
-		default:
-			formatted.WriteByte(char)
-		}
+func FormatJSON(body string, keyStyle lipgloss.Style, valueStyle lipgloss.Style) string {
+	var jsonData interface{}
+	if err := json.Unmarshal([]byte(body), &jsonData); err != nil {
+		return body
 	}
 
-	return formatted.String()
+	formatted, err := json.MarshalIndent(jsonData, "", "  ")
+	if err != nil {
+		return body
+	}
+
+	formattedStr := string(formatted)
+
+	keyRe := regexp.MustCompile(`"([^"]+)":`)
+	styled := keyRe.ReplaceAllStringFunc(formattedStr, func(match string) string {
+		keyMatch := keyRe.FindStringSubmatch(match)
+		if len(keyMatch) > 1 {
+			return keyStyle.Render(`"`+keyMatch[1]+`"`) + ":"
+		}
+		return match
+	})
+
+	stringValueRe := regexp.MustCompile(`:\s*"([^"]+)"`)
+	styled = stringValueRe.ReplaceAllStringFunc(styled, func(match string) string {
+		valueMatch := stringValueRe.FindStringSubmatch(match)
+		if len(valueMatch) > 1 {
+			prefix := match[:strings.Index(match, `"`)]
+			return prefix + valueStyle.Render(`"`+valueMatch[1]+`"`)
+		}
+		return match
+	})
+
+	numberRe := regexp.MustCompile(`:\s*(-?\d+\.?\d*)`)
+	styled = numberRe.ReplaceAllStringFunc(styled, func(match string) string {
+		valueMatch := numberRe.FindStringSubmatch(match)
+		if len(valueMatch) > 1 {
+			prefix := match[:strings.Index(match, valueMatch[1])]
+			return prefix + valueStyle.Render(valueMatch[1])
+		}
+		return match
+	})
+
+	boolNullRe := regexp.MustCompile(`:\s*(true|false|null)`)
+	styled = boolNullRe.ReplaceAllStringFunc(styled, func(match string) string {
+		valueMatch := boolNullRe.FindStringSubmatch(match)
+		if len(valueMatch) > 1 {
+			prefix := match[:strings.Index(match, valueMatch[1])]
+			return prefix + valueStyle.Render(valueMatch[1])
+		}
+		return match
+	})
+
+	return styled
 }
 
 func HeadersPageView(m model) string {
