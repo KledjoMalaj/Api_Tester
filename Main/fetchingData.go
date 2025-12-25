@@ -73,6 +73,13 @@ func PostAPiFunc(m model) ApiResponse {
 		return ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 
+	newHeader := Header{
+		Key:   "Content-Type",
+		Value: "application/json",
+	}
+
+	headers = append(headers, newHeader)
+
 	for i := 0; i < len(headers); i++ {
 		req.Header.Set(headers[i].Key, headers[i].Value)
 	}

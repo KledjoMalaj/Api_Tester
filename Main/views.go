@@ -115,10 +115,11 @@ func BuildApiPageContent(m model, termWidth int) string {
 	SelectedApi := m.SelectedApi
 
 	var Response ApiResponse
-	if m.SelectedApi.Method == "POST" {
+
+	switch m.SelectedApi.Method {
+	case "POST", "DELETE", "PUT", "PATCH":
 		Response = PostAPiFunc(m)
-	}
-	if m.SelectedApi.Method == "GET" {
+	case "GET":
 		Response = FetchData(m.SelectedApi)
 	}
 
