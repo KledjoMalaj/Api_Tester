@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type ApiResponse struct {
@@ -128,4 +130,22 @@ func parseData(selectedApi Api) string {
 
 	b.WriteString("}")
 	return b.String()
+}
+
+type apiResponseMsg struct {
+	response ApiResponse
+}
+
+func fetchApiCommand(api Api) tea.Cmd {
+	return func() tea.Msg {
+		response := FetchData(api)
+		return apiResponseMsg{response: response}
+	}
+}
+
+func postApiCommand(m model) tea.Cmd {
+	return func() tea.Msg {
+		response := PostAPiFunc(m)
+		return apiResponseMsg{response: response}
+	}
 }

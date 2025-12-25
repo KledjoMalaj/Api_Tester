@@ -16,6 +16,7 @@ const (
 	ApiPage
 	RequestPage
 	HeadersPage
+	LoadingPage
 )
 
 type model struct {
@@ -47,6 +48,8 @@ type model struct {
 	newBodyFieldInput   textinput.Model
 	bodyFiledValueInput textinput.Model
 	BodyFields          []BodyField
+
+	apiResponse ApiResponse
 }
 
 func NewModel(storage Storage) model {

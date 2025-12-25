@@ -11,6 +11,15 @@ import (
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
+	case apiResponseMsg:
+		m.apiResponse = msg.response
+		m.CurrentPage = ApiPage
+		if m.viewportReady {
+			m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
+			m.apiViewport.GotoTop()
+		}
+		return m, nil
+
 	case fileChangedMsg:
 		m.storage = Storage(msg)
 
@@ -49,6 +58,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		case HeadersPage:
 			m, cmd := UpdateHeadersPage(m, msg)
+			return m, cmd
+		case LoadingPage:
+			m, cmd := UpdateLoadingPage(m, msg)
 			return m, cmd
 		}
 	}
@@ -207,11 +219,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.pointer = 0
 
 			case "GET":
-				m.CurrentPage = ApiPage
-				if m.viewportReady {
-					m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
-					m.apiViewport.GotoTop()
-				}
+				m.CurrentPage = LoadingPage
+				m.ApiIndex = m.pointer
+				return m, fetchApiCommand(m.SelectedApi)
 			}
 
 		case ":":
@@ -376,12 +386,9 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		switch msg.String() {
 		case "enter":
-			m.CurrentPage = ApiPage
-			// Load content into viewport when entering ApiPage from RequestPage
-			if m.viewportReady {
-				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
-				m.apiViewport.GotoTop()
-			}
+			m.CurrentPage = LoadingPage
+			return m, postApiCommand(m)
+
 		case "v":
 			m.bodyFiledValueInput.Focus()
 		case ":":
@@ -487,5 +494,9 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		}
 	}
+	return m, nil
+}
+
+func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }

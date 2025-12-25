@@ -21,6 +21,8 @@ func (m model) View() string {
 		return ReqPage(m)
 	case HeadersPage:
 		return HeadersPageView(m)
+	case LoadingPage:
+		return loadingView(m)
 	}
 	return ""
 }
@@ -119,14 +121,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	var b strings.Builder
 	SelectedApi := m.SelectedApi
 
-	var Response ApiResponse
-
-	switch m.SelectedApi.Method {
-	case "POST", "DELETE", "PUT", "PATCH":
-		Response = PostAPiFunc(m)
-	case "GET":
-		Response = FetchData(m.SelectedApi)
-	}
+	Response := m.apiResponse
 
 	statusStyle := StatusOKStyle
 	if Response.StatusCode >= 400 {
@@ -332,5 +327,11 @@ func HeadersPageView(m model) string {
 	b.WriteString("\n")
 	b.WriteString(m.addHeaderKey.View())
 
+	return b.String()
+}
+
+func loadingView(m model) string {
+	var b strings.Builder
+	b.WriteString("LOADING...")
 	return b.String()
 }
