@@ -331,7 +331,8 @@ func HeadersPageView(m model) string {
 }
 
 func loadingView(m model) string {
+	style1 := loadingStyle(m.termWidth, m.termHeight)
 	var b strings.Builder
-	b.WriteString("LOADING...")
+	b.WriteString(style1.Render("LOADING..."))
 	return b.String()
 }

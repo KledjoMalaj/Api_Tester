@@ -98,3 +98,13 @@ var bodyElementStyle = lipgloss.NewStyle().
 
 var bodyElementStyle2 = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("210"))
+
+func loadingStyle(termWidth int, termHeight int) lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("10")).
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#3C3C3C")).
+		Width(termWidth - 3).
+		MarginTop(termHeight / 2).
+		Align(lipgloss.Center)
+}
