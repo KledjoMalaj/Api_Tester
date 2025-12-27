@@ -28,6 +28,7 @@ func (m model) View() string {
 }
 
 func Homepage(m model) string {
+	styleInput := inputStyle(m.termWidth)
 	style3 := OptionsStyle(m.termWidth)
 	style2 := HomePageStyle2(m.termWidth, m.termHeight)
 	style1 := TitleStyle(m.termWidth)
@@ -57,7 +58,7 @@ func Homepage(m model) string {
 		items = append(items, text)
 	}
 
-	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewCollectionInput.View()
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left), m.NewCollectionInput.View())
 	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
@@ -69,12 +70,13 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 	style1 := HomePageStyle1(termWidth + 21)
 	style2 := HomePageStyle2(termWidth, termHeight)
 	style3 := OptionsStyle(termWidth)
+	styleInput := inputStyle(m.termWidth)
 
 	var b strings.Builder
 	collectionName := m.SelectedCollection.Name
 
 	b.WriteString(style1.Render(collectionName))
-	b.WriteString("\n\n")
+	b.WriteString("\n")
 
 	var items []string
 
@@ -96,8 +98,8 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 		items = append(items, text)
 	}
 
-	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + m.NewApiInput.View()
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit")
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewApiInput.View()))
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit\n\nh -> Headers")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
@@ -174,6 +176,7 @@ func ReqPage(m model) string {
 	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
+	styleInput := inputStyle(m.termWidth)
 
 	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
 
@@ -212,13 +215,11 @@ func ReqPage(m model) string {
 		}
 	}
 
-	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.newBodyFieldInput.View()))
 	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\nv -> Add Value")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
-	b.WriteString("\n")
-	b.WriteString(m.newBodyFieldInput.View())
 
 	return b.String()
 }
@@ -282,6 +283,7 @@ func HeadersPageView(m model) string {
 	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
+	styleInput := inputStyle(m.termWidth)
 
 	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
 
@@ -319,13 +321,11 @@ func HeadersPageView(m model) string {
 		}
 	}
 
-	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...))
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val ")
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addHeaderKey.View()))
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
-	b.WriteString("\n")
-	b.WriteString(m.addHeaderKey.View())
 
 	return b.String()
 }

@@ -108,3 +108,11 @@ func loadingStyle(termWidth int, termHeight int) lipgloss.Style {
 		MarginTop(termHeight / 2).
 		Align(lipgloss.Center)
 }
+
+func inputStyle(termWidth int) lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("10")).
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("#3C3C3C")).
+		Width(termWidth - 25)
+}
