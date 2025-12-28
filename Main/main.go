@@ -42,11 +42,13 @@ type model struct {
 
 	addHeaderKey   textinput.Model
 	addHeaderValue textinput.Model
+	editingHeader  textinput.Model
 	Headers        []Header
 	ApiIndex       int
 
 	newBodyFieldInput   textinput.Model
 	bodyFiledValueInput textinput.Model
+	editingBodyFields   textinput.Model
 	BodyFields          []BodyField
 
 	apiResponse ApiResponse

@@ -348,6 +348,21 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.editingBodyFields.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.editing = false
+				m.editingBodyFields.Blur()
+				return m, nil
+			case "enter":
+				m.BodyFields[m.pointer].Value = m.editingBodyFields.Value()
+				m.BodyFields = addBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
+				m.editing = false
+				m.editingBodyFields.Blur()
+			}
+			m.editingBodyFields, cmd = m.editingBodyFields.Update(msg)
+			return m, cmd
+		}
 
 		if m.newBodyFieldInput.Focused() {
 			switch msg.String() {
@@ -412,6 +427,12 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					m.pointer--
 				}
 			}
+		case "e":
+			m.editing = true
+			value := m.BodyFields[m.pointer].Value
+			m.editingBodyFields = textinput.New()
+			m.editingBodyFields.SetValue(value)
+			m.editingBodyFields.Focus()
 		}
 	}
 
@@ -423,6 +444,22 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.editingHeader.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.editing = false
+				m.editingHeader.Blur()
+				return m, nil
+			case "enter":
+				m.Headers[m.pointer].Value = m.editingHeader.Value()
+				addHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex)
+				m.editing = false
+				m.editingHeader.Blur()
+			}
+			m.editingHeader, cmd = m.editingHeader.Update(msg)
+			return m, cmd
+		}
 
 		if m.addHeaderKey.Focused() {
 			switch msg.String() {
@@ -472,6 +509,7 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		case "enter":
 			m.addHeaderValue.Focus()
+
 		case "d":
 			if len(m.Headers) > 0 {
 				selectedHeader := m.Headers[m.pointer]
@@ -492,6 +530,12 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.pointer++
 			}
 
+		case "e":
+			m.editing = true
+			value := m.Headers[m.pointer].Value
+			m.editingHeader = textinput.New()
+			m.editingHeader.SetValue(value)
+			m.editingHeader.Focus()
 		}
 	}
 	return m, nil

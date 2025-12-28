@@ -196,27 +196,22 @@ func ReqPage(m model) string {
 	} else {
 		for i := 0; i < len(bodyFields); i++ {
 			var line string
-			if bodyFields[i].Value != "" {
-				if m.pointer == i {
-					line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+bodyFields[i].Value+"\n")
-				} else {
-					line = style4.Render("   ") + (bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
-				}
 
-				items = append(items, line)
+			if m.pointer == i && m.editing {
+				line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+m.editingBodyFields.View()+"\n")
+			} else if m.pointer == i && bodyFields[i].Value == "" {
+				line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+m.bodyFiledValueInput.View()+"\n")
+			} else if m.pointer == i {
+				line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+bodyFields[i].Value+"\n")
 			} else {
-				if m.pointer == i {
-					line = style4.Render("> ") + style5.Render(bodyFields[i].Key+" : "+m.bodyFiledValueInput.View()+"\n")
-				} else {
-					line = style4.Render("   ") + (bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
-				}
-				items = append(items, line)
+				line = style4.Render("   ") + (bodyFields[i].Key + " : " + bodyFields[i].Value + "\n")
 			}
+			items = append(items, line)
 		}
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.newBodyFieldInput.View()))
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\nv -> Add Value")
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\nv -> Add Value\n\ne -> edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
@@ -298,31 +293,26 @@ func HeadersPageView(m model) string {
 	if len(headers) == 0 {
 		line := style4.Render("No headers\n\n")
 		items = append(items, line)
-
 	} else {
 		for i, h := range headers {
 			var line string
-			if h.Value != "" {
-				if m.pointer == i {
-					line = style4.Render("> ") + style5.Render(h.Key+" "+h.Value+"\n")
-				} else {
-					line = style4.Render("   ") + (h.Key + " " + h.Value + "\n")
-				}
-				items = append(items, line)
 
+			if m.pointer == i && m.editing {
+				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingHeader.View()+"\n")
+			} else if m.pointer == i && h.Value == "" {
+				line = style4.Render("> ") + style5.Render(h.Key+" "+m.addHeaderValue.View()+"\n")
+			} else if m.pointer == i {
+				line = style4.Render("> ") + style5.Render(h.Key+" "+h.Value+"\n")
 			} else {
-				if m.pointer == i {
-					line = style4.Render("> ") + style5.Render(h.Key+" "+m.addHeaderValue.View()+"\n")
-				} else {
-					line = style4.Render("   ") + (h.Key + " " + h.Value + "\n")
-				}
-				items = append(items, line)
+				line = style4.Render("   ") + (h.Key + " " + h.Value + "\n")
 			}
+
+			items = append(items, line)
 		}
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addHeaderKey.View()))
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val")
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val\n\ne -> edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
