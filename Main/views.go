@@ -67,7 +67,7 @@ func Homepage(m model) string {
 }
 
 func Collectionpage(termWidth, termHeight int, m model) string {
-	style1 := HomePageStyle1(termWidth + 21)
+	style1 := TitleStyle(termWidth)
 	style2 := HomePageStyle2(termWidth, termHeight)
 	style3 := OptionsStyle(termWidth)
 	styleInput := inputStyle(m.termWidth)
