@@ -16,6 +16,7 @@ const (
 	ApiPage
 	RequestPage
 	HeadersPage
+	QueryParamsPage
 	LoadingPage
 )
 
@@ -51,6 +52,10 @@ type model struct {
 	editingBodyFields   textinput.Model
 	BodyFields          []BodyField
 
+	addQueryParamsKey  textinput.Model
+	addQueryParmsValue textinput.Model
+	QueryParams        []QueryParam
+
 	apiResponse ApiResponse
 }
 
@@ -77,6 +82,12 @@ func NewModel(storage Storage) model {
 	bodyFiledValue := textinput.New()
 	bodyFiledValue.Placeholder = "Add new Body Field Value..."
 
+	QueryParamsKey := textinput.New()
+	QueryParamsKey.Placeholder = "Add new Query Param Key..."
+
+	QueryParamsValue := textinput.New()
+	QueryParamsValue.Placeholder = "Add new Query Params Value..."
+
 	return model{
 		CurrentPage:         HomePage,
 		jsonInput:           ti,
@@ -89,6 +100,8 @@ func NewModel(storage Storage) model {
 		addHeaderValue:      addHeaderValue,
 		newBodyFieldInput:   newBodyField,
 		bodyFiledValueInput: bodyFiledValue,
+		addQueryParamsKey:   QueryParamsKey,
+		addQueryParmsValue:  QueryParamsValue,
 	}
 }
 

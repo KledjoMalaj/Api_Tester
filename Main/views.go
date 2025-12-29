@@ -21,6 +21,8 @@ func (m model) View() string {
 		return ReqPage(m)
 	case HeadersPage:
 		return HeadersPageView(m)
+	case QueryParamsPage:
+		return QueryParamsPageView(m)
 	case LoadingPage:
 		return loadingView(m)
 	}
@@ -317,6 +319,12 @@ func HeadersPageView(m model) string {
 
 	b.WriteString(layout)
 
+	return b.String()
+}
+
+func QueryParamsPageView(m model) string {
+	var b strings.Builder
+	b.WriteString("QueryParams Page")
 	return b.String()
 }
 

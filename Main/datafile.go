@@ -27,11 +27,17 @@ type BodyField struct {
 	Value string `json:"value"`
 }
 
+type QueryParam struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Api struct {
-	Method    string      `json:"method"`
-	Url       string      `json:"url"`
-	Headers   []Header    `json:"headers"`
-	BodyField []BodyField `json:"bodyFields"`
+	Method      string       `json:"method"`
+	Url         string       `json:"url"`
+	Headers     []Header     `json:"headers"`
+	BodyField   []BodyField  `json:"bodyFields"`
+	QueryParams []QueryParam `json:"queryParams"`
 }
 
 var fileName string = "APITEST1.json"

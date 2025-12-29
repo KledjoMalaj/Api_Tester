@@ -59,6 +59,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case HeadersPage:
 			m, cmd := UpdateHeadersPage(m, msg)
 			return m, cmd
+		case QueryParamsPage:
+			m, cmd := UpdateQueryParamsPage(m, msg)
+			return m, cmd
 		case LoadingPage:
 			m, cmd := UpdateLoadingPage(m, msg)
 			return m, cmd
@@ -252,6 +255,11 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.CurrentPage = HeadersPage
 			m.SelectedApi = m.Apis[m.pointer]
 			m.Headers = m.SelectedApi.Headers
+			m.ApiIndex = m.pointer
+			m.pointer = 0
+		case "q":
+			m.CurrentPage = QueryParamsPage
+			m.SelectedApi = m.Apis[m.pointer]
 			m.ApiIndex = m.pointer
 			m.pointer = 0
 		}
@@ -536,6 +544,18 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.editingHeader = textinput.New()
 			m.editingHeader.SetValue(value)
 			m.editingHeader.Focus()
+		}
+	}
+	return m, nil
+}
+
+func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = CollectionPage
+			m.pointer = m.ApiIndex
 		}
 	}
 	return m, nil
