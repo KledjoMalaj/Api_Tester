@@ -555,6 +555,23 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+
+		if m.editingQueryParams.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.editing = false
+				m.editingQueryParams.Blur()
+				return m, nil
+			case "enter":
+				m.QueryParams[m.pointer].Value = m.editingQueryParams.Value()
+				addQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex)
+				m.editing = false
+				m.editingQueryParams.Blur()
+			}
+			m.editingQueryParams, cmd = m.editingQueryParams.Update(msg)
+			return m, cmd
+		}
+
 		if m.addQueryParamsKey.Focused() {
 			switch msg.String() {
 			case "esc":
@@ -605,6 +622,21 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "down", "j":
 			if m.pointer < len(m.QueryParams)-1 {
 				m.pointer++
+			}
+		case "e":
+			m.editing = true
+			value := m.QueryParams[m.pointer].Value
+			m.editingQueryParams = textinput.New()
+			m.editingQueryParams.SetValue(value)
+			m.editingQueryParams.Focus()
+		case "d":
+			if len(m.QueryParams) > 0 {
+				selectedQueryParam := m.QueryParams[m.pointer]
+				m.QueryParams = deleteQueryParam(selectedQueryParam, m.storage, m.collectionIndex, m.ApiIndex)
+
+				if m.pointer >= len(m.QueryParams) && m.pointer > 0 {
+					m.pointer--
+				}
 			}
 		}
 	}

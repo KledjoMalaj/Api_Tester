@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,8 +22,9 @@ type ApiResponse struct {
 
 func FetchData(SelectedApi Api) ApiResponse {
 	headers := SelectedApi.Headers
+	api := buildURL(SelectedApi)
 
-	url := strings.TrimSpace(SelectedApi.Url)
+	url := strings.TrimSpace(api)
 	url = strings.Trim(url, `"`)
 
 	method := SelectedApi.Method
@@ -59,13 +61,15 @@ func FetchData(SelectedApi Api) ApiResponse {
 
 func PostAPiFunc(m model) ApiResponse {
 	SelectedApi := m.SelectedApi
+
 	headers := m.SelectedApi.Headers
 
 	data := parseData(SelectedApi)
 
+	Url := buildURL(SelectedApi)
 	bodyReader := strings.NewReader(data)
 
-	url := strings.TrimSpace(SelectedApi.Url)
+	url := strings.TrimSpace(Url)
 	url = strings.Trim(url, `"`)
 
 	method := SelectedApi.Method
@@ -148,4 +152,16 @@ func postApiCommand(m model) tea.Cmd {
 		response := PostAPiFunc(m)
 		return apiResponseMsg{response: response}
 	}
+}
+func buildURL(api Api) string {
+	if len(api.QueryParams) == 0 {
+		return api.Url
+	}
+
+	var params []string
+	for _, param := range api.QueryParams {
+		params = append(params, url.QueryEscape(param.Key)+"="+url.QueryEscape(param.Value))
+	}
+
+	return api.Url + "?" + strings.Join(params, "&")
 }

@@ -207,6 +207,22 @@ func addQueryParam(queryParams []QueryParam, storage Storage, collectionIndex in
 	WriteFile(storage)
 }
 
+func deleteQueryParam(selectedQueryParam QueryParam, storage Storage, collectionIndex int, apiIndex int) []QueryParam {
+	QueryParams := storage.Collections[collectionIndex].Requests[apiIndex].QueryParams
+
+	var newQueryParams []QueryParam
+	for i := 0; i < len(QueryParams); i++ {
+		if !(QueryParams[i].Key == selectedQueryParam.Key && QueryParams[i].Value == selectedQueryParam.Value) {
+			newQueryParams = append(newQueryParams, QueryParams[i])
+		}
+	}
+
+	storage.Collections[collectionIndex].Requests[apiIndex].QueryParams = newQueryParams
+	WriteFile(storage)
+
+	return newQueryParams
+}
+
 func WriteFile(storage Storage) {
 	file, err := os.Create(fileName)
 	if err != nil {

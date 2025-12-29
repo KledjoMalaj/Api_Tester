@@ -323,26 +323,43 @@ func HeadersPageView(m model) string {
 }
 
 func QueryParamsPageView(m model) string {
+	style1 := TitleStyle(m.termWidth)
+	style2 := OptionsStyle(m.termWidth)
+	style3 := HomePageStyle2(m.termWidth, m.termHeight)
+	styleInput := inputStyle(m.termWidth)
+
 	var b strings.Builder
-	b.WriteString("QueryParams Page")
+	b.WriteString(style1.Render("QueryParams Page"))
 	b.WriteString("\n")
 
+	var items []string
 	QueryParams := m.QueryParams
+
 	if len(QueryParams) == 0 {
-		b.WriteString("No Query Params\n\n")
+		line := "No Query Params\n\n"
+		items = append(items, line)
 	} else {
 		for i, h := range QueryParams {
-			if m.pointer == i && h.Value != "" {
-				b.WriteString("> " + h.Key + " : " + h.Value + "\n")
+			var line string
+			if m.pointer == i && m.editing {
+				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingQueryParams.View()+"\n")
+			} else if m.pointer == i && h.Value != "" {
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
 			} else if m.pointer == i {
-				b.WriteString("> " + h.Key + " : " + m.addQueryParmsValue.View() + "\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addQueryParmsValue.View()+"\n")
 			} else {
-				b.WriteString("   " + h.Key + " : " + h.Value + "\n")
+				line = style4.Render("   ") + h.Key + " : " + h.Value + "\n"
 			}
+			items = append(items, line)
 		}
 	}
 
-	b.WriteString(m.addQueryParamsKey.View())
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addQueryParamsKey.View()))
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val\n\ne -> edit")
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+
+	b.WriteString(layout)
+
 	return b.String()
 }
 

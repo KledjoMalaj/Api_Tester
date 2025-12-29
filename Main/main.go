@@ -54,6 +54,7 @@ type model struct {
 
 	addQueryParamsKey  textinput.Model
 	addQueryParmsValue textinput.Model
+	editingQueryParams textinput.Model
 	QueryParams        []QueryParam
 
 	apiResponse ApiResponse
