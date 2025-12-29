@@ -325,6 +325,24 @@ func HeadersPageView(m model) string {
 func QueryParamsPageView(m model) string {
 	var b strings.Builder
 	b.WriteString("QueryParams Page")
+	b.WriteString("\n")
+
+	QueryParams := m.QueryParams
+	if len(QueryParams) == 0 {
+		b.WriteString("No Query Params\n\n")
+	} else {
+		for i, h := range QueryParams {
+			if m.pointer == i && h.Value != "" {
+				b.WriteString("> " + h.Key + " : " + h.Value + "\n")
+			} else if m.pointer == i {
+				b.WriteString("> " + h.Key + " : " + m.addQueryParmsValue.View() + "\n")
+			} else {
+				b.WriteString("   " + h.Key + " : " + h.Value + "\n")
+			}
+		}
+	}
+
+	b.WriteString(m.addQueryParamsKey.View())
 	return b.String()
 }
 

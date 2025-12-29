@@ -257,10 +257,12 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.Headers = m.SelectedApi.Headers
 			m.ApiIndex = m.pointer
 			m.pointer = 0
+
 		case "q":
 			m.CurrentPage = QueryParamsPage
 			m.SelectedApi = m.Apis[m.pointer]
 			m.ApiIndex = m.pointer
+			m.QueryParams = m.SelectedApi.QueryParams
 			m.pointer = 0
 		}
 	}
@@ -550,12 +552,60 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 }
 
 func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.addQueryParamsKey.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.addQueryParamsKey.SetValue("")
+				m.addQueryParamsKey.Blur()
+			case "enter":
+				key := m.addQueryParamsKey.Value()
+				newQueryParam := QueryParam{
+					Key:   key,
+					Value: "",
+				}
+				m.QueryParams = append(m.QueryParams, newQueryParam)
+				addQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex)
+				m.addQueryParamsKey.SetValue("")
+				m.addQueryParamsKey.Blur()
+			}
+			m.addQueryParamsKey, cmd = m.addQueryParamsKey.Update(msg)
+			return m, cmd
+		}
+
+		if m.addQueryParmsValue.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.addQueryParmsValue.SetValue("")
+				m.addQueryParmsValue.Blur()
+			case "enter":
+				m.QueryParams[m.pointer].Value = m.addQueryParmsValue.Value()
+				addQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex)
+				m.addQueryParmsValue.SetValue("")
+				m.addQueryParmsValue.Blur()
+			}
+			m.addQueryParmsValue, cmd = m.addQueryParmsValue.Update(msg)
+			return m, cmd
+		}
+
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
 			m.pointer = m.ApiIndex
+		case ":":
+			m.addQueryParamsKey.Focus()
+		case "enter":
+			m.addQueryParmsValue.Focus()
+		case "up", "k":
+			if m.pointer > 0 {
+				m.pointer--
+			}
+		case "down", "j":
+			if m.pointer < len(m.QueryParams)-1 {
+				m.pointer++
+			}
 		}
 	}
 	return m, nil

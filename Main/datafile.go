@@ -202,6 +202,11 @@ func deleteBodyField(selectedBodyField BodyField, storage Storage, collectionInd
 	return NewBodyFields
 }
 
+func addQueryParam(queryParams []QueryParam, storage Storage, collectionIndex int, apiIndex int) {
+	storage.Collections[collectionIndex].Requests[apiIndex].QueryParams = queryParams
+	WriteFile(storage)
+}
+
 func WriteFile(storage Storage) {
 	file, err := os.Create(fileName)
 	if err != nil {
