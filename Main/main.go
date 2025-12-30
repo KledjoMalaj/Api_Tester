@@ -63,31 +63,40 @@ type model struct {
 func NewModel(storage Storage) model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter JSON Body here..."
+	ti.CharLimit = 50
 	ti.Focus()
 
 	ai := textinput.New()
 	ai.Placeholder = "Add New Api..."
+	ai.Width = 50
 
 	collInput := textinput.New()
 	collInput.Placeholder = "Add New Collection..."
+	collInput.Width = 50
 
 	addHeaderKey := textinput.New()
 	addHeaderKey.Placeholder = "Add Header Key..."
+	addHeaderKey.Width = 50
 
 	addHeaderValue := textinput.New()
 	addHeaderValue.Placeholder = "Add Header Value..."
+	addHeaderValue.Width = 50
 
 	newBodyField := textinput.New()
-	newBodyField.Placeholder = "Add New Body Field..."
+	newBodyField.Placeholder = "Add Body Field..."
+	newBodyField.Width = 50
 
 	bodyFiledValue := textinput.New()
-	bodyFiledValue.Placeholder = "Add new Body Field Value..."
+	bodyFiledValue.Placeholder = "Add Body Field Value..."
+	bodyFiledValue.Width = 50
 
 	QueryParamsKey := textinput.New()
-	QueryParamsKey.Placeholder = "Add new Query Param Key..."
+	QueryParamsKey.Placeholder = "Add Query Param Key..."
+	QueryParamsKey.Width = 50
 
 	QueryParamsValue := textinput.New()
-	QueryParamsValue.Placeholder = "Add new Query Params Value..."
+	QueryParamsValue.Placeholder = "Add Query Params Value..."
+	QueryParamsValue.Width = 50
 
 	return model{
 		CurrentPage:         HomePage,

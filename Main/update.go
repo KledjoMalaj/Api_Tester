@@ -644,5 +644,12 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 }
 
 func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = CollectionPage
+		}
+	}
 	return m, nil
 }
