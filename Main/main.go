@@ -36,10 +36,11 @@ type model struct {
 	jsonInput          textinput.Model
 	apiViewport        viewport.Model
 	viewportReady      bool
-	editingApi         textinput.Model
-	editingCollection  textinput.Model
-	editingCurrentApi  textinput.Model
-	editing            bool
+
+	editingApi        textinput.Model
+	editingCollection textinput.Model
+	editingCurrentApi textinput.Model
+	editing           bool
 
 	addHeaderKey   textinput.Model
 	addHeaderValue textinput.Model
