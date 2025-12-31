@@ -22,6 +22,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case fileChangedMsg:
 		m.storage = Storage(msg)
+		m.Collections = m.storage.Collections
+
+		if m.CurrentPage == CollectionPage || m.CurrentPage == HeadersPage ||
+			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage {
+
+			if m.collectionIndex >= 0 && m.collectionIndex < len(m.Collections) {
+				m.SelectedCollection = m.Collections[m.collectionIndex]
+				m.Apis = m.SelectedCollection.Requests
+
+				if m.ApiIndex >= 0 && m.ApiIndex < len(m.Apis) {
+					m.SelectedApi = m.Apis[m.ApiIndex]
+
+					m.Headers = m.SelectedApi.Headers
+					m.BodyFields = m.SelectedApi.BodyField
+					m.QueryParams = m.SelectedApi.QueryParams
+				}
+			}
+		}
 
 	case tea.WindowSizeMsg:
 
