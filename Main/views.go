@@ -121,6 +121,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	style1 := TitleStyle(termWidth)
 	style3 := ResponseStyle(termWidth)
 	style2 := statusLine(termWidth)
+	styleInput := inputStyle(termWidth)
 
 	var b strings.Builder
 	SelectedApi := m.SelectedApi
@@ -159,7 +160,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 
 	b.WriteString("\n\n")
 	if m.editing {
-		b.WriteString(style3.Render("editing..." + m.editingCurrentApi.View()))
+		b.WriteString(style3.Render("editing..." + "\n" + styleInput.Render(m.editingCurrentApi.View())))
 	} else {
 		b.WriteString(style3.Render(
 			"Selected Api is : " +
@@ -346,7 +347,7 @@ func QueryParamsPageView(m model) string {
 			} else if m.pointer == i && h.Value != "" {
 				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
 			} else if m.pointer == i {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addQueryParmsValue.View()+"\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addQueryParamsValue.View()+"\n")
 			} else {
 				line = style4.Render("   ") + h.Key + " : " + h.Value + "\n"
 			}

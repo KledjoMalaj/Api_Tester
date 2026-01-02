@@ -53,10 +53,10 @@ type model struct {
 	editingBodyFields   textinput.Model
 	BodyFields          []BodyField
 
-	addQueryParamsKey  textinput.Model
-	addQueryParmsValue textinput.Model
-	editingQueryParams textinput.Model
-	QueryParams        []QueryParam
+	addQueryParamsKey   textinput.Model
+	addQueryParamsValue textinput.Model
+	editingQueryParams  textinput.Model
+	QueryParams         []QueryParam
 
 	apiResponse ApiResponse
 }
@@ -112,7 +112,7 @@ func NewModel(storage Storage) model {
 		newBodyFieldInput:   newBodyField,
 		bodyFiledValueInput: bodyFiledValue,
 		addQueryParamsKey:   QueryParamsKey,
-		addQueryParmsValue:  QueryParamsValue,
+		addQueryParamsValue: QueryParamsValue,
 	}
 }
 

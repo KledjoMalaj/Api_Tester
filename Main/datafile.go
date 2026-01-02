@@ -136,8 +136,11 @@ func deleteCollection(selectedCollection Collection, storage Storage) []Collecti
 func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi string) {
 	parts := strings.SplitN(newApi, " ", 2)
 	newApi1 := Api{
-		Method: parts[0],
-		Url:    parts[1],
+		Method:      parts[0],
+		Url:         parts[1],
+		Headers:     selectedApi.Headers,
+		QueryParams: selectedApi.QueryParams,
+		BodyField:   selectedApi.BodyField,
 	}
 
 	Apis := storage.Collections[collectionIndex].Requests
