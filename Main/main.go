@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -122,14 +124,22 @@ func (m model) Init() tea.Cmd {
 
 func main() {
 
-	storage := ReadFile()
+	storage, err := ReadFile()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Cannot start application\n")
+		fmt.Fprintf(os.Stderr, "Reason: %v \n", err)
+		os.Exit(1)
+	}
 
 	m := NewModel(storage)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
-	watcher := watchFile(p)
-	defer watcher.Close()
-
+	watcher, err := watchFile(p)
+	if err != nil {
+		log.Printf("Warning:File watcher failed: %v", err)
+	} else {
+		defer watcher.Close()
+	}
 	if err := p.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}

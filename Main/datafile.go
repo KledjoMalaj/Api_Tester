@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -42,65 +43,53 @@ type Api struct {
 
 var fileName string = "APITEST1.json"
 
-func CreateFile() {
+func CreateFile() error {
 	file, err := os.Create(fileName)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to create data file: %w", err)
 	}
 	defer file.Close()
+	return nil
 }
 
-func fileChecker() {
+func fileChecker() error {
 	file, err := os.Open(fileName)
 	if err != nil {
-		CreateFile()
+		if createErr := CreateFile(); createErr != nil {
+			return fmt.Errorf("failed to create file: %w", createErr)
+		}
+		return nil
 	}
 	defer file.Close()
+	return nil
 }
 
-func ReadFile() Storage {
-	fileChecker()
+func ReadFile() (Storage, error) {
+	if err := fileChecker(); err != nil {
+		return Storage{}, err
+	}
 	file, err := os.ReadFile(fileName)
 	if err != nil {
-		log.Fatal(err)
+		return Storage{}, fmt.Errorf("failed to read file: %w", err)
 	}
 	var storage Storage
 	if len(file) == 0 {
-		return Storage{Collections: []Collection{}}
+		return Storage{Collections: []Collection{}}, nil
 	}
 	if err := json.Unmarshal(file, &storage); err != nil {
-		log.Fatal(err)
+		return Storage{}, fmt.Errorf("failed to parse JSON: %w", err)
 	}
-	return storage
+	return storage, nil
 }
 
 func AddApi(storage Storage, collectionIndex int, apis []Api) {
-	file, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
 	storage.Collections[collectionIndex].Requests = apis
-
-	encode := json.NewEncoder(file)
-	if err := encode.Encode(storage); err != nil {
-		log.Fatal(err)
-	}
+	WriteFile(storage)
 }
 
 func AddCollection(storage Storage, collections []Collection) {
-	file, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
 	storage.Collections = collections
-	encode := json.NewEncoder(file)
-	if err := encode.Encode(storage); err != nil {
-		log.Fatal(err)
-	}
+	WriteFile(storage)
 }
 
 func deleteApi(selectedApi Api, storage Storage, collectionIndex int) []Api {
@@ -226,29 +215,31 @@ func deleteQueryParam(selectedQueryParam QueryParam, storage Storage, collection
 	return newQueryParams
 }
 
-func WriteFile(storage Storage) {
+func WriteFile(storage Storage) error {
 	file, err := os.Create(fileName)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer file.Close()
 
 	encode := json.NewEncoder(file)
 	if err := encode.Encode(storage); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to write file: %w", err)
 	}
+	return nil
 }
 
 type fileChangedMsg Storage
 
-func watchFile(p *tea.Program) *fsnotify.Watcher {
+func watchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to create watcher: %w", err)
 	}
 
 	if err := watcher.Add(fileName); err != nil {
-		log.Fatal(err)
+		watcher.Close()
+		return nil, fmt.Errorf("failed to watch file: %w", err)
 	}
 
 	go func() {
@@ -256,7 +247,11 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 			select {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					newStorage := ReadFile()
+					newStorage, readErr := ReadFile()
+					if readErr != nil {
+						log.Printf("Watcher: Error reading file: %v", err)
+						continue
+					}
 					p.Send(fileChangedMsg(newStorage))
 				}
 			case err := <-watcher.Errors:
@@ -266,5 +261,5 @@ func watchFile(p *tea.Program) *fsnotify.Watcher {
 			}
 		}
 	}()
-	return watcher
+	return watcher, nil
 }

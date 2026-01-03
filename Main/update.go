@@ -312,7 +312,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				editApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingCurrentApi.Value())
 
 				// Update local state
-				m.storage = ReadFile()
+				m.storage, _ = ReadFile()
 				m.Collections = m.storage.Collections
 				m.SelectedCollection = m.Collections[m.collectionIndex]
 				m.Apis = m.SelectedCollection.Requests
