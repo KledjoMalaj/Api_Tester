@@ -43,6 +43,16 @@ type Api struct {
 
 var fileName string = "APITEST1.json"
 
+type errorMsg struct {
+	message string
+}
+
+func showErrorCommand(message string) tea.Cmd {
+	return func() tea.Msg {
+		return errorMsg{message: message}
+	}
+}
+
 func CreateFile() error {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -82,17 +92,17 @@ func ReadFile() (Storage, error) {
 	return storage, nil
 }
 
-func AddApi(storage Storage, collectionIndex int, apis []Api) {
+func AddApi(storage Storage, collectionIndex int, apis []Api) error {
 	storage.Collections[collectionIndex].Requests = apis
-	WriteFile(storage)
+	return WriteFile(storage)
 }
 
-func AddCollection(storage Storage, collections []Collection) {
+func AddCollection(storage Storage, collections []Collection) error {
 	storage.Collections = collections
-	WriteFile(storage)
+	return WriteFile(storage)
 }
 
-func deleteApi(selectedApi Api, storage Storage, collectionIndex int) []Api {
+func deleteApi(selectedApi Api, storage Storage, collectionIndex int) ([]Api, error) {
 	Apis := storage.Collections[collectionIndex].Requests
 	var newApis []Api
 	for i := 0; i < len(Apis); i++ {
@@ -100,13 +110,15 @@ func deleteApi(selectedApi Api, storage Storage, collectionIndex int) []Api {
 			newApis = append(newApis, Apis[i])
 		}
 	}
-
 	storage.Collections[collectionIndex].Requests = newApis
-	WriteFile(storage)
 
-	return newApis
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return newApis, nil
 }
-func deleteCollection(selectedCollection Collection, storage Storage) []Collection {
+func deleteCollection(selectedCollection Collection, storage Storage) ([]Collection, error) {
 	Collections := storage.Collections
 	var newCollections []Collection
 
@@ -115,14 +127,16 @@ func deleteCollection(selectedCollection Collection, storage Storage) []Collecti
 			newCollections = append(newCollections, Collections[i])
 		}
 	}
-
 	storage.Collections = newCollections
-	WriteFile(storage)
 
-	return newCollections
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return newCollections, nil
 }
 
-func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi string) {
+func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi string) error {
 	parts := strings.SplitN(newApi, " ", 2)
 	newApi1 := Api{
 		Method:      parts[0],
@@ -139,25 +153,25 @@ func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi strin
 		}
 	}
 
-	WriteFile(storage)
+	return WriteFile(storage)
 }
 
-func editCollection(storage Storage, selectedCollection Collection, newCollection string) {
+func editCollection(storage Storage, selectedCollection Collection, newCollection string) error {
 	Collections := storage.Collections
 	for i := 0; i < len(Collections); i++ {
 		if Collections[i].Name == selectedCollection.Name {
 			Collections[i].Name = newCollection
 		}
 	}
-	WriteFile(storage)
+	return WriteFile(storage)
 }
 
-func addHeader(headers []Header, storage Storage, collectionIndex int, apiIndex int) {
+func addHeader(headers []Header, storage Storage, collectionIndex int, apiIndex int) error {
 
 	storage.Collections[collectionIndex].Requests[apiIndex].Headers = headers
-	WriteFile(storage)
+	return WriteFile(storage)
 }
-func deleteHeader(selectedHeader Header, storage Storage, collectionIndex int, apiIndex int) []Header {
+func deleteHeader(selectedHeader Header, storage Storage, collectionIndex int, apiIndex int) ([]Header, error) {
 	Headers := storage.Collections[collectionIndex].Requests[apiIndex].Headers
 
 	var newHeaders []Header
@@ -166,20 +180,26 @@ func deleteHeader(selectedHeader Header, storage Storage, collectionIndex int, a
 			newHeaders = append(newHeaders, Headers[i])
 		}
 	}
-
 	storage.Collections[collectionIndex].Requests[apiIndex].Headers = newHeaders
-	WriteFile(storage)
 
-	return newHeaders
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return newHeaders, nil
 }
 
-func addBodyField(storage Storage, collectionIndex int, apiIndex int, bodyFields []BodyField) []BodyField {
+func addBodyField(storage Storage, collectionIndex int, apiIndex int, bodyFields []BodyField) ([]BodyField, error) {
 	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = bodyFields
-	WriteFile(storage)
-	return bodyFields
+
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return bodyFields, nil
 }
 
-func deleteBodyField(selectedBodyField BodyField, storage Storage, collectionIndex int, apiIndex int) []BodyField {
+func deleteBodyField(selectedBodyField BodyField, storage Storage, collectionIndex int, apiIndex int) ([]BodyField, error) {
 	bodyFields := storage.Collections[collectionIndex].Requests[apiIndex].BodyField
 
 	var NewBodyFields []BodyField
@@ -190,16 +210,19 @@ func deleteBodyField(selectedBodyField BodyField, storage Storage, collectionInd
 	}
 	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = NewBodyFields
 
-	WriteFile(storage)
-	return NewBodyFields
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return NewBodyFields, nil
 }
 
-func addQueryParam(queryParams []QueryParam, storage Storage, collectionIndex int, apiIndex int) {
+func addQueryParam(queryParams []QueryParam, storage Storage, collectionIndex int, apiIndex int) error {
 	storage.Collections[collectionIndex].Requests[apiIndex].QueryParams = queryParams
-	WriteFile(storage)
+	return WriteFile(storage)
 }
 
-func deleteQueryParam(selectedQueryParam QueryParam, storage Storage, collectionIndex int, apiIndex int) []QueryParam {
+func deleteQueryParam(selectedQueryParam QueryParam, storage Storage, collectionIndex int, apiIndex int) ([]QueryParam, error) {
 	QueryParams := storage.Collections[collectionIndex].Requests[apiIndex].QueryParams
 
 	var newQueryParams []QueryParam
@@ -210,9 +233,12 @@ func deleteQueryParam(selectedQueryParam QueryParam, storage Storage, collection
 	}
 
 	storage.Collections[collectionIndex].Requests[apiIndex].QueryParams = newQueryParams
-	WriteFile(storage)
 
-	return newQueryParams
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return newQueryParams, nil
 }
 
 func WriteFile(storage Storage) error {
@@ -249,7 +275,7 @@ func watchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					newStorage, readErr := ReadFile()
 					if readErr != nil {
-						log.Printf("Watcher: Error reading file: %v", err)
+						log.Printf("Watcher: Error reading file: %v", readErr)
 						continue
 					}
 					p.Send(fileChangedMsg(newStorage))

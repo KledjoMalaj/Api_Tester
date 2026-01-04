@@ -61,6 +61,9 @@ type model struct {
 	QueryParams         []QueryParam
 
 	apiResponse ApiResponse
+
+	errorMessage string
+	hasError     bool
 }
 
 func NewModel(storage Storage) model {
@@ -140,6 +143,7 @@ func main() {
 	} else {
 		defer watcher.Close()
 	}
+
 	if err := p.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}
