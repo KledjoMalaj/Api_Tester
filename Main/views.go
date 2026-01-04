@@ -39,6 +39,7 @@ func Homepage(m model) string {
 
 	b.WriteString(style1.Render("Collections "))
 	b.WriteString("\n")
+
 	collections := m.storage.Collections
 
 	var items []string
@@ -60,7 +61,15 @@ func Homepage(m model) string {
 		items = append(items, text)
 	}
 
-	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left), m.NewCollectionInput.View())
+	var errorWarning string
+
+	if m.hasError {
+		errorStyle := errorStyle(m.termWidth)
+		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		errorWarning = line
+	}
+
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewCollectionInput.View())) + "\n\n" + errorWarning
 	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
@@ -100,7 +109,15 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 		items = append(items, text)
 	}
 
-	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewApiInput.View()))
+	var errorWarning string
+
+	if m.hasError {
+		errorStyle := errorStyle(m.termWidth)
+		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		errorWarning = line
+	}
+
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewApiInput.View())) + "\n\n" + errorWarning
 	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit\n\nh -> Headers")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
@@ -213,7 +230,15 @@ func ReqPage(m model) string {
 		}
 	}
 
-	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.newBodyFieldInput.View()))
+	var errorWarning string
+
+	if m.hasError {
+		errorStyle := errorStyle(m.termWidth)
+		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		errorWarning = line
+	}
+
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.newBodyFieldInput.View())) + "\n\n" + errorWarning
 	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\nv -> Add Value\n\ne -> edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
@@ -314,7 +339,15 @@ func HeadersPageView(m model) string {
 		}
 	}
 
-	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addHeaderKey.View()))
+	var errorWarning string
+
+	if m.hasError {
+		errorStyle := errorStyle(m.termWidth)
+		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		errorWarning = line
+	}
+
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addHeaderKey.View())) + "\n\n" + errorWarning
 	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val\n\ne -> edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
@@ -355,7 +388,15 @@ func QueryParamsPageView(m model) string {
 		}
 	}
 
-	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addQueryParamsKey.View()))
+	var errorWarning string
+
+	if m.hasError {
+		errorStyle := errorStyle(m.termWidth)
+		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		errorWarning = line
+	}
+
+	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addQueryParamsKey.View())) + "\n\n" + errorWarning
 	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val\n\ne -> edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 

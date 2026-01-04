@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -183,6 +181,13 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.SelectedCollection = m.Collections[m.pointer]
 			m.editingCollection.SetValue(m.SelectedCollection.Name)
 			m.editingCollection.Focus()
+
+		case "x":
+			if m.hasError {
+				m.hasError = false
+				m.errorMessage = ""
+				return m, nil
+			}
 		}
 
 	}
@@ -217,16 +222,8 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.NewApiInput.Blur()
 				return m, nil
 			case "enter":
-				parts := strings.SplitN(m.NewApiInput.Value(), " ", 2)
-				if len(parts) < 2 {
-					return m, nil
-				}
-				newApi := Api{
-					Method: parts[0],
-					Url:    parts[1],
-				}
-				m.Apis = append(m.Apis, newApi)
-				if err := AddApi(m.storage, m.collectionIndex, m.Apis); err != nil {
+
+				if err := AddApi(m.storage, m.collectionIndex, m.Apis, m.NewApiInput.Value()); err != nil {
 					return m, showErrorCommand("Failed to add api: " + err.Error())
 				}
 				m.NewApiInput.SetValue("")
@@ -304,6 +301,13 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.ApiIndex = m.pointer
 			m.QueryParams = m.SelectedApi.QueryParams
 			m.pointer = 0
+
+		case "x":
+			if m.hasError {
+				m.hasError = false
+				m.errorMessage = ""
+				return m, nil
+			}
 		}
 	}
 
@@ -500,6 +504,13 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.editingBodyFields = textinput.New()
 			m.editingBodyFields.SetValue(value)
 			m.editingBodyFields.Focus()
+
+		case "x":
+			if m.hasError {
+				m.hasError = false
+				m.errorMessage = ""
+				return m, nil
+			}
 		}
 	}
 
@@ -612,6 +623,13 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.editingHeader = textinput.New()
 			m.editingHeader.SetValue(value)
 			m.editingHeader.Focus()
+
+		case "x":
+			if m.hasError {
+				m.hasError = false
+				m.errorMessage = ""
+				return m, nil
+			}
 		}
 	}
 	return m, nil
@@ -712,6 +730,13 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				if m.pointer >= len(m.QueryParams) && m.pointer > 0 {
 					m.pointer--
 				}
+			}
+
+		case "x":
+			if m.hasError {
+				m.hasError = false
+				m.errorMessage = ""
+				return m, nil
 			}
 		}
 	}

@@ -92,7 +92,23 @@ func ReadFile() (Storage, error) {
 	return storage, nil
 }
 
-func AddApi(storage Storage, collectionIndex int, apis []Api) error {
+func AddApi(storage Storage, collectionIndex int, apis []Api, NewApiInput string) error {
+	parts := strings.SplitN(NewApiInput, " ", 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("invalid format: expected 'METHOD URL' (e.g., 'GET https://api.com')")
+	}
+	if parts[0] == "" {
+		return fmt.Errorf("method cannot be empty")
+	}
+	if parts[1] == "" {
+		return fmt.Errorf("URL cannot be empty")
+	}
+	newApi := Api{
+		Method: parts[0],
+		Url:    parts[1],
+	}
+
+	apis = append(apis, newApi)
 	storage.Collections[collectionIndex].Requests = apis
 	return WriteFile(storage)
 }
@@ -138,6 +154,15 @@ func deleteCollection(selectedCollection Collection, storage Storage) ([]Collect
 
 func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi string) error {
 	parts := strings.SplitN(newApi, " ", 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("invalid format: expected 'METHOD URL' (e.g., 'GET https://api.com')")
+	}
+	if parts[0] == "" {
+		return fmt.Errorf("method cannot be empty")
+	}
+	if parts[1] == "" {
+		return fmt.Errorf("URL cannot be empty")
+	}
 	newApi1 := Api{
 		Method:      parts[0],
 		Url:         parts[1],
@@ -157,6 +182,9 @@ func editApi(storage Storage, collectionIndex int, selectedApi Api, newApi strin
 }
 
 func editCollection(storage Storage, selectedCollection Collection, newCollection string) error {
+	if newCollection == "" {
+		return fmt.Errorf("collection name cannot be empty")
+	}
 	Collections := storage.Collections
 	for i := 0; i < len(Collections); i++ {
 		if Collections[i].Name == selectedCollection.Name {

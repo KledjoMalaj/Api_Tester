@@ -116,3 +116,14 @@ func inputStyle(termWidth int) lipgloss.Style {
 		BorderForeground(lipgloss.Color("#3C3C3C")).
 		Width(termWidth - 25)
 }
+
+func errorStyle(termWidth int) lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("9")).
+		Bold(true).
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("9")).
+		Padding(1).
+		Width(termWidth - 25).
+		Align(lipgloss.Center)
+}
