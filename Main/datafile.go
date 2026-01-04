@@ -113,7 +113,14 @@ func AddApi(storage Storage, collectionIndex int, apis []Api, NewApiInput string
 	return WriteFile(storage)
 }
 
-func AddCollection(storage Storage, collections []Collection) error {
+func AddCollection(storage Storage, collections []Collection, CollectionName string) error {
+	if CollectionName == "" {
+		return fmt.Errorf("collection name cannot be empty")
+	}
+	newCollection := Collection{
+		Name: CollectionName,
+	}
+	collections = append(collections, newCollection)
 	storage.Collections = collections
 	return WriteFile(storage)
 }

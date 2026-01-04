@@ -122,12 +122,8 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.NewCollectionInput.Blur()
 				return m, nil
 			case "enter":
-				collection := m.NewCollectionInput.Value()
-				newCollection := Collection{
-					Name: collection,
-				}
-				m.Collections = append(m.Collections, newCollection)
-				if err := AddCollection(m.storage, m.Collections); err != nil {
+
+				if err := AddCollection(m.storage, m.Collections, m.NewCollectionInput.Value()); err != nil {
 					return m, showErrorCommand("Failed to add collection: " + err.Error())
 				}
 				m.NewCollectionInput.SetValue("")
