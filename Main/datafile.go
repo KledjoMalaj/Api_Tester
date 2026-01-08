@@ -94,6 +94,9 @@ func ReadFile() (Storage, error) {
 
 func AddApi(storage Storage, collectionIndex int, apis []Api, NewApiInput string) error {
 	parts := strings.SplitN(NewApiInput, " ", 2)
+	if collectionIndex < 0 || collectionIndex >= len(storage.Collections) {
+		return fmt.Errorf("invalid collection index")
+	}
 	if len(parts) < 2 {
 		return fmt.Errorf("invalid format: expected 'METHOD URL' (e.g., 'GET https://api.com')")
 	}

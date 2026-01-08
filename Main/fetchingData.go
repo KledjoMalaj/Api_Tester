@@ -45,7 +45,10 @@ func FetchData(SelectedApi Api) ApiResponse {
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, _ := io.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
+	}
 
 	return ApiResponse{
 		StatusCode:     resp.StatusCode,
@@ -99,7 +102,10 @@ func PostAPiFunc(m model) ApiResponse {
 	defer resp.Body.Close()
 
 	// Read response body
-	bodyBytes, _ := io.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
+	}
 
 	// Return structured response
 	return ApiResponse{
