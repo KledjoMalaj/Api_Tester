@@ -86,6 +86,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case LoadingPage:
 			m, cmd := UpdateLoadingPage(m, msg)
 			return m, cmd
+		case VariablesPage:
+			m, cmd := UpdateVariablesPage(m, msg)
+			return m, cmd
 		}
 	}
 
@@ -388,6 +391,8 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			if m.viewportReady {
 				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
 			}
+		case "x":
+			m.CurrentPage = VariablesPage
 		}
 	}
 
@@ -745,6 +750,17 @@ func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
+		}
+	}
+	return m, nil
+}
+
+func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = ApiPage
 		}
 	}
 	return m, nil

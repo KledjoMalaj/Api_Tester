@@ -15,8 +15,9 @@ type Storage struct {
 	Collections []Collection `json:"collections"`
 }
 type Collection struct {
-	Name     string `json:"name"`
-	Requests []Api  `json:"requests"`
+	Name           string          `json:"name"`
+	Requests       []Api           `json:"requests"`
+	LocalVariables []LocalVariable `json:"localVariables"`
 }
 
 type Header struct {
@@ -29,6 +30,11 @@ type BodyField struct {
 }
 
 type QueryParam struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type LocalVariable struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }

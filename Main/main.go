@@ -20,6 +20,7 @@ const (
 	HeadersPage
 	QueryParamsPage
 	LoadingPage
+	VariablesPage
 )
 
 type model struct {
@@ -59,6 +60,8 @@ type model struct {
 	addQueryParamsValue textinput.Model
 	editingQueryParams  textinput.Model
 	QueryParams         []QueryParam
+
+	LocalVariables []LocalVariable
 
 	apiResponse ApiResponse
 

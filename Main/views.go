@@ -25,6 +25,8 @@ func (m model) View() string {
 		return QueryParamsPageView(m)
 	case LoadingPage:
 		return loadingView(m)
+	case VariablesPage:
+		return VariablePageView(m)
 	}
 	return ""
 }
@@ -118,7 +120,7 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewApiInput.View())) + "\n\n" + errorWarning
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit\n\nh -> Headers")
+	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit\n\nh -> Headers\n\nq -> QueryParams")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
@@ -410,4 +412,49 @@ func loadingView(m model) string {
 	var b strings.Builder
 	b.WriteString(style1.Render("LOADING..."))
 	return b.String()
+}
+
+func HandleJson(response ApiResponse, m *model) string {
+	var b strings.Builder
+
+	var data interface{}
+	err := json.Unmarshal([]byte(response.Body), &data)
+	if err != nil {
+		return "invalid json"
+	}
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		b.WriteString("JSON Object\n")
+
+		for k, val := range v {
+			b.WriteString(fmt.Sprintf("%s: %v\n", k, val))
+
+			m.LocalVariables = append(m.LocalVariables, LocalVariable{
+				Key:   k,
+				Value: fmt.Sprintf("%v", val),
+			})
+		}
+
+	case []interface{}:
+		b.WriteString("JSON Array\n")
+		b.WriteString(fmt.Sprintf("Length: %d\n", len(v)))
+
+	default:
+		b.WriteString("Unknown JSON type")
+	}
+
+	return b.String()
+}
+
+func VariablePageView(m model) string {
+	var a strings.Builder
+	response := m.apiResponse
+	HandleJson(response, &m)
+
+	for _, variable := range m.LocalVariables {
+		a.WriteString(variable.Key + " : " + variable.Value + "\n\n")
+	}
+
+	return a.String()
 }
