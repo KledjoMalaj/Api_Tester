@@ -257,7 +257,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.CurrentPage = LoadingPage
 				m.ApiIndex = m.pointer
 				m.apiResponse = FetchData(m.SelectedApi, m)
-				m.LocalVariables, _ = HandleJson(m.apiResponse)
+				m.Responses, _ = HandleJson(m.apiResponse)
 				return m, fetchApiCommand(m.SelectedApi, m)
 			}
 
@@ -474,7 +474,7 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			m.CurrentPage = LoadingPage
 			m.apiResponse = PostAPiFunc(m)
-			m.LocalVariables, _ = HandleJson(m.apiResponse)
+			m.Responses, _ = HandleJson(m.apiResponse)
 			return m, postApiCommand(m)
 
 		case "v":
@@ -761,7 +761,6 @@ func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
 }
 
 func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
-	m.LocalVariables, _ = HandleJson(m.apiResponse)
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -774,7 +773,7 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.pointer--
 			}
 		case "down", "j":
-			if m.pointer < len(m.LocalVariables)-1 {
+			if m.pointer < len(m.Responses)-1 {
 				m.pointer++
 			}
 		}

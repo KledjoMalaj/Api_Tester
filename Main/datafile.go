@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,12 +40,18 @@ type LocalVariable struct {
 	Value string `json:"value"`
 }
 
+type Response struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Api struct {
 	Method      string       `json:"method"`
 	Url         string       `json:"url"`
 	Headers     []Header     `json:"headers"`
 	BodyField   []BodyField  `json:"bodyFields"`
 	QueryParams []QueryParam `json:"queryParams"`
+	Responses   []Response   `json:"responses"`
 }
 
 var fileName string = "APITEST1.json"
@@ -332,4 +339,26 @@ func watchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 		}
 	}()
 	return watcher, nil
+}
+
+func HandleJson(response ApiResponse) ([]Response, error) {
+	var vars []Response
+
+	var data map[string]interface{}
+	err := json.Unmarshal([]byte(response.Body), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range data {
+		vars = append(vars, Response{
+			Key:   k,
+			Value: fmt.Sprintf("%v", v),
+		})
+	}
+	sort.Slice(vars, func(i, j int) bool {
+		return vars[i].Key < vars[j].Key
+	})
+
+	return vars, nil
 }

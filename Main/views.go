@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -415,36 +414,14 @@ func loadingView(m model) string {
 	return b.String()
 }
 
-func HandleJson(response ApiResponse) ([]LocalVariable, error) {
-	var vars []LocalVariable
-
-	var data map[string]interface{}
-	err := json.Unmarshal([]byte(response.Body), &data)
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range data {
-		vars = append(vars, LocalVariable{
-			Key:   k,
-			Value: fmt.Sprintf("%v", v),
-		})
-	}
-	sort.Slice(vars, func(i, j int) bool {
-		return vars[i].Key < vars[j].Key
-	})
-
-	return vars, nil
-}
-
 func VariablePageView(m model) string {
 	var b strings.Builder
 
-	if len(m.LocalVariables) == 0 {
+	if len(m.Responses) == 0 {
 		return "No variables loaded"
 	}
 
-	for i, v := range m.LocalVariables {
+	for i, v := range m.Responses {
 		if m.pointer == i {
 			b.WriteString("> " + v.Key + " : " + v.Value + "\n")
 		} else {

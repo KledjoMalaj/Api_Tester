@@ -61,6 +61,7 @@ type model struct {
 	editingQueryParams  textinput.Model
 	QueryParams         []QueryParam
 
+	Responses      []Response
 	LocalVariables []LocalVariable
 
 	apiResponse ApiResponse
