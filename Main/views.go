@@ -438,18 +438,19 @@ func HandleJson(response ApiResponse) ([]LocalVariable, error) {
 }
 
 func VariablePageView(m model) string {
-	var a strings.Builder
-	response := m.apiResponse
+	var b strings.Builder
 
-	vars, err := HandleJson(response)
-	if err != nil {
-		a.WriteString("Error :" + err.Error())
-	}
-	m.LocalVariables = vars
-
-	for _, variable := range m.LocalVariables {
-		a.WriteString(variable.Key + " : " + variable.Value + "\n\n")
+	if len(m.LocalVariables) == 0 {
+		return "No variables loaded"
 	}
 
-	return a.String()
+	for i, v := range m.LocalVariables {
+		if m.pointer == i {
+			b.WriteString("> " + v.Key + " : " + v.Value + "\n")
+		} else {
+			b.WriteString("  " + v.Key + " : " + v.Value + "\n")
+		}
+	}
+
+	return b.String()
 }

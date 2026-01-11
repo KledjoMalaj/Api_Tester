@@ -20,7 +20,7 @@ type ApiResponse struct {
 	ContentLength  int64
 }
 
-func FetchData(SelectedApi Api) ApiResponse {
+func FetchData(SelectedApi Api, m model) ApiResponse {
 	headers := SelectedApi.Headers
 	api := buildURL(SelectedApi)
 
@@ -50,7 +50,7 @@ func FetchData(SelectedApi Api) ApiResponse {
 		return ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
 	}
 
-	return ApiResponse{
+	m.apiResponse = ApiResponse{
 		StatusCode:     resp.StatusCode,
 		Status:         resp.Status,
 		Body:           string(bodyBytes),
@@ -59,6 +59,8 @@ func FetchData(SelectedApi Api) ApiResponse {
 		ContentType:    resp.Header.Get("Content-Type"),
 		ContentLength:  resp.ContentLength,
 	}
+
+	return m.apiResponse
 
 }
 
@@ -107,8 +109,7 @@ func PostAPiFunc(m model) ApiResponse {
 		return ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
 	}
 
-	// Return structured response
-	return ApiResponse{
+	m.apiResponse = ApiResponse{
 		StatusCode:     resp.StatusCode,
 		Status:         resp.Status,
 		Body:           string(bodyBytes),
@@ -117,6 +118,8 @@ func PostAPiFunc(m model) ApiResponse {
 		ContentType:    resp.Header.Get("Content-Type"),
 		ContentLength:  resp.ContentLength,
 	}
+
+	return m.apiResponse
 }
 func parseData(selectedApi Api) string {
 	if len(selectedApi.BodyField) == 0 {
@@ -146,9 +149,9 @@ type apiResponseMsg struct {
 	response ApiResponse
 }
 
-func fetchApiCommand(api Api) tea.Cmd {
+func fetchApiCommand(api Api, m model) tea.Cmd {
 	return func() tea.Msg {
-		response := FetchData(api)
+		response := FetchData(api, m)
 		return apiResponseMsg{response: response}
 	}
 }
