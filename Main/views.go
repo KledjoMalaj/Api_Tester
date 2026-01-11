@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -414,43 +415,37 @@ func loadingView(m model) string {
 	return b.String()
 }
 
-func HandleJson(response ApiResponse, m *model) string {
-	var b strings.Builder
+func HandleJson(response ApiResponse) ([]LocalVariable, error) {
+	var vars []LocalVariable
 
-	var data interface{}
+	var data map[string]interface{}
 	err := json.Unmarshal([]byte(response.Body), &data)
 	if err != nil {
-		return "invalid json"
+		return nil, err
 	}
 
-	switch v := data.(type) {
-	case map[string]interface{}:
-		b.WriteString("JSON Object\n")
-
-		for k, val := range v {
-			b.WriteString(fmt.Sprintf("%s: %v\n", k, val))
-
-			m.LocalVariables = append(m.LocalVariables, LocalVariable{
-				Key:   k,
-				Value: fmt.Sprintf("%v", val),
-			})
-		}
-
-	case []interface{}:
-		b.WriteString("JSON Array\n")
-		b.WriteString(fmt.Sprintf("Length: %d\n", len(v)))
-
-	default:
-		b.WriteString("Unknown JSON type")
+	for k, v := range data {
+		vars = append(vars, LocalVariable{
+			Key:   k,
+			Value: fmt.Sprintf("%v", v),
+		})
 	}
+	sort.Slice(vars, func(i, j int) bool {
+		return vars[i].Key < vars[j].Key
+	})
 
-	return b.String()
+	return vars, nil
 }
 
 func VariablePageView(m model) string {
 	var a strings.Builder
 	response := m.apiResponse
-	HandleJson(response, &m)
+
+	vars, err := HandleJson(response)
+	if err != nil {
+		a.WriteString("Error :" + err.Error())
+	}
+	m.LocalVariables = vars
 
 	for _, variable := range m.LocalVariables {
 		a.WriteString(variable.Key + " : " + variable.Value + "\n\n")
