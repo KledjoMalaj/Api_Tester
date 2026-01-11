@@ -415,19 +415,45 @@ func loadingView(m model) string {
 }
 
 func VariablePageView(m model) string {
+	style1 := OptionsStyle(m.termWidth)
+
 	var b strings.Builder
 
+	var responses []string
+
 	if len(m.Responses) == 0 {
-		return "No variables loaded"
+		line := "No Response loaded"
+		responses = append(responses, line)
 	}
 
 	for i, v := range m.Responses {
-		if m.pointer == i {
-			b.WriteString("> " + v.Key + " : " + v.Value + "\n")
+		var line string
+		if m.pointer == i && !m.VariablesFocus {
+			line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value+"\n")
 		} else {
-			b.WriteString("  " + v.Key + " : " + v.Value + "\n")
+			line = "   " + v.Key + " : " + v.Value + "\n"
 		}
+		responses = append(responses, line)
 	}
+	var variables []string
+
+	if len(m.LocalVariables) == 0 {
+		line := "No Variables loaded"
+		variables = append(variables, line)
+	}
+
+	for i, v := range m.LocalVariables {
+		var line string
+		if m.pointer == i && m.VariablesFocus {
+			line = style4.Render("> " + style5.Render(v.Key+" : "+v.Value+"\n"))
+		} else {
+			line = "  " + v.Key + " : " + v.Value + "\n"
+		}
+		variables = append(variables, line)
+	}
+
+	b.WriteString(style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" +
+		style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...)))
 
 	return b.String()
 }

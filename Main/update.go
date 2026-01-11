@@ -26,6 +26,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case fileChangedMsg:
 		m.storage = Storage(msg)
 		m.Collections = m.storage.Collections
+		m.LocalVariables = m.storage.Collections[m.collectionIndex].LocalVariables
 
 		if m.CurrentPage == CollectionPage || m.CurrentPage == HeadersPage ||
 			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage {
@@ -763,18 +764,49 @@ func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
 func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			m.CurrentPage = ApiPage
-			m.pointer = m.ApiIndex
 
-		case "up", "k":
-			if m.pointer > 0 {
-				m.pointer--
+		if m.VariablesFocus {
+			switch msg.String() {
+			case "esc":
+				m.CurrentPage = ApiPage
+				m.pointer = m.ApiIndex
+			case "s":
+				m.VariablesFocus = false
+				m.pointer = 0
+			case "up", "k":
+				if m.pointer > 0 {
+					m.pointer--
+				}
+			case "down", "j":
+				if m.pointer < len(m.LocalVariables)-1 {
+					m.pointer++
+				}
 			}
-		case "down", "j":
-			if m.pointer < len(m.Responses)-1 {
-				m.pointer++
+		}
+
+		if !m.VariablesFocus {
+			switch msg.String() {
+			case "esc":
+				m.CurrentPage = ApiPage
+				m.pointer = m.ApiIndex
+
+			case "up", "k":
+				if m.pointer > 0 {
+					m.pointer--
+				}
+			case "down", "j":
+				if m.pointer < len(m.Responses)-1 {
+					m.pointer++
+				}
+			case "enter":
+				selectedResponse := m.Responses[m.pointer]
+				err := addLocalVariable(m.storage, m.collectionIndex, selectedResponse, m.LocalVariables)
+				if err != nil {
+					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
+				}
+			case "v":
+				m.VariablesFocus = true
+				m.pointer = 0
 			}
 		}
 	}

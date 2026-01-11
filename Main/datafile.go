@@ -292,6 +292,16 @@ func deleteQueryParam(selectedQueryParam QueryParam, storage Storage, collection
 	return newQueryParams, nil
 }
 
+func addLocalVariable(storage Storage, collectionIndex int, selectedResponse Response, localVariables []LocalVariable) error {
+	newVariable := LocalVariable{
+		Key:   selectedResponse.Key,
+		Value: selectedResponse.Value,
+	}
+	localVariables = append(localVariables, newVariable)
+	storage.Collections[collectionIndex].LocalVariables = localVariables
+	return WriteFile(storage)
+}
+
 func WriteFile(storage Storage) error {
 	file, err := os.Create(fileName)
 	if err != nil {

@@ -63,6 +63,7 @@ type model struct {
 
 	Responses      []Response
 	LocalVariables []LocalVariable
+	VariablesFocus bool
 
 	apiResponse ApiResponse
 
