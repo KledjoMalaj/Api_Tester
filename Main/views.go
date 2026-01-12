@@ -429,7 +429,7 @@ func VariablePageView(m model) string {
 	for i, v := range m.Responses {
 		var line string
 		if m.pointer == i && !m.VariablesFocus {
-			line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value+"\n")
+			line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value+"   press C to copy value... "+"\n")
 		} else {
 			line = "   " + v.Key + " : " + v.Value + "\n"
 		}

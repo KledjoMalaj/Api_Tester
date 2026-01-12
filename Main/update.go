@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -807,6 +808,12 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "v":
 				m.VariablesFocus = true
 				m.pointer = 0
+			case "c":
+				selectedResponse := m.Responses[m.pointer]
+				err := clipboard.WriteAll(selectedResponse.Value)
+				if err != nil {
+					return m, showErrorCommand("Failed to Copy Response: " + err.Error())
+				}
 			}
 		}
 	}
