@@ -20,7 +20,7 @@ const (
 	HeadersPage
 	QueryParamsPage
 	LoadingPage
-	VariablesPage
+	ResponsePage
 )
 
 type model struct {

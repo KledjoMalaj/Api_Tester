@@ -25,8 +25,8 @@ func (m model) View() string {
 		return QueryParamsPageView(m)
 	case LoadingPage:
 		return loadingView(m)
-	case VariablesPage:
-		return VariablePageView(m)
+	case ResponsePage:
+		return ResponsePageView(m)
 	}
 	return ""
 }
@@ -414,7 +414,7 @@ func loadingView(m model) string {
 	return b.String()
 }
 
-func VariablePageView(m model) string {
+func ResponsePageView(m model) string {
 	style1 := OptionsStyle(m.termWidth - 4)
 	copyStyle := CopytextStyle()
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)

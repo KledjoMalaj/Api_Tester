@@ -29,7 +29,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Collections = m.storage.Collections
 
 		if m.CurrentPage == CollectionPage || m.CurrentPage == HeadersPage ||
-			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage || m.CurrentPage == VariablesPage {
+			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage || m.CurrentPage == ResponsePage {
 
 			if m.collectionIndex >= 0 && m.collectionIndex < len(m.Collections) {
 				m.SelectedCollection = m.Collections[m.collectionIndex]
@@ -88,8 +88,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case LoadingPage:
 			m, cmd := UpdateLoadingPage(m, msg)
 			return m, cmd
-		case VariablesPage:
-			m, cmd := UpdateVariablesPage(m, msg)
+		case ResponsePage:
+			m, cmd := UpdateResponsePage(m, msg)
 			return m, cmd
 		}
 	}
@@ -397,7 +397,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			}
 		case "r":
 			m.LocalVariables = m.SelectedCollection.LocalVariables
-			m.CurrentPage = VariablesPage
+			m.CurrentPage = ResponsePage
 			m.pointer = 0
 		}
 	}
@@ -763,7 +763,7 @@ func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 
