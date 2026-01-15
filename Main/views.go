@@ -415,9 +415,15 @@ func loadingView(m model) string {
 }
 
 func VariablePageView(m model) string {
-	style1 := OptionsStyle(m.termWidth)
+	style1 := OptionsStyle(m.termWidth - 4)
+	copyStyle := CopytextStyle()
+	style3 := HomePageStyle2(m.termWidth, m.termHeight)
+	titleStyle := TitleStyle(m.termWidth)
 
 	var b strings.Builder
+
+	b.WriteString(titleStyle.Render("Response Page"))
+	b.WriteString("\n")
 
 	var responses []string
 
@@ -429,7 +435,7 @@ func VariablePageView(m model) string {
 	for i, v := range m.Responses {
 		var line string
 		if m.pointer == i && !m.VariablesFocus {
-			line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value+"   press C to copy value... "+"\n")
+			line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value) + copyStyle.Render("          ...press C to copy value"+"\n")
 		} else {
 			line = "   " + v.Key + " : " + v.Value + "\n"
 		}
@@ -452,8 +458,11 @@ func VariablePageView(m model) string {
 		variables = append(variables, line)
 	}
 
-	b.WriteString(style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" +
-		style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...)))
+	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" + style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Add Variable\n\nv -> go to Variables\n\nr -> go to Response")
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+
+	b.WriteString(layout)
 
 	return b.String()
 }

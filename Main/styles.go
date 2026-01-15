@@ -127,3 +127,8 @@ func errorStyle(termWidth int) lipgloss.Style {
 		Width(termWidth - 25).
 		Align(lipgloss.Center)
 }
+
+func CopytextStyle() lipgloss.Style {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color("4"))
+}

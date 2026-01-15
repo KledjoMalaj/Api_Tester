@@ -395,7 +395,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			if m.viewportReady {
 				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
 			}
-		case "x":
+		case "r":
 			m.CurrentPage = VariablesPage
 			m.pointer = 0
 		}
@@ -771,7 +771,7 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "esc":
 				m.CurrentPage = ApiPage
 				m.pointer = m.ApiIndex
-			case "s":
+			case "r":
 				m.VariablesFocus = false
 				m.pointer = 0
 			case "up", "k":
