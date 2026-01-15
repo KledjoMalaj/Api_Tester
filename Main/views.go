@@ -459,7 +459,7 @@ func VariablePageView(m model) string {
 	}
 
 	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" + style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Add Variable\n\nv -> go to Variables\n\nr -> go to Response")
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Add Variable\n\nv -> go to Variables\n\nr -> go to Response\n\nd -> delete")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)

@@ -27,14 +27,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case fileChangedMsg:
 		m.storage = Storage(msg)
 		m.Collections = m.storage.Collections
-		m.LocalVariables = m.storage.Collections[m.collectionIndex].LocalVariables
 
 		if m.CurrentPage == CollectionPage || m.CurrentPage == HeadersPage ||
-			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage {
+			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage || m.CurrentPage == VariablesPage {
 
 			if m.collectionIndex >= 0 && m.collectionIndex < len(m.Collections) {
 				m.SelectedCollection = m.Collections[m.collectionIndex]
 				m.Apis = m.SelectedCollection.Requests
+				m.LocalVariables = m.SelectedCollection.LocalVariables
 
 				if m.ApiIndex >= 0 && m.ApiIndex < len(m.Apis) {
 					m.SelectedApi = m.Apis[m.ApiIndex]
@@ -396,6 +396,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
 			}
 		case "r":
+			m.LocalVariables = m.SelectedCollection.LocalVariables
 			m.CurrentPage = VariablesPage
 			m.pointer = 0
 		}
@@ -781,6 +782,18 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "down", "j":
 				if m.pointer < len(m.LocalVariables)-1 {
 					m.pointer++
+				}
+			case "d":
+				if len(m.LocalVariables) > 0 {
+					selectedVariable := m.LocalVariables[m.pointer]
+					newLocalVariables, err := deleteLocalVariable(selectedVariable, m.storage, m.collectionIndex)
+					if err != nil {
+						return m, showErrorCommand("Failed to delete Local Variable : " + err.Error())
+					}
+					m.LocalVariables = newLocalVariables
+					if m.pointer >= len(m.LocalVariables) && m.pointer > 0 {
+						m.pointer--
+					}
 				}
 			}
 		}

@@ -297,9 +297,30 @@ func addLocalVariable(storage Storage, collectionIndex int, selectedResponse Res
 		Key:   selectedResponse.Key,
 		Value: selectedResponse.Value,
 	}
-	localVariables = append(localVariables, newVariable)
-	storage.Collections[collectionIndex].LocalVariables = localVariables
+	storage.Collections[collectionIndex].LocalVariables = append(
+		storage.Collections[collectionIndex].LocalVariables,
+		newVariable,
+	)
 	return WriteFile(storage)
+}
+
+func deleteLocalVariable(selectedLocalVariable LocalVariable, storage Storage, collectionIndex int) ([]LocalVariable, error) {
+	LocalVariables := storage.Collections[collectionIndex].LocalVariables
+
+	var newLocalVariables []LocalVariable
+	for i := 0; i < len(LocalVariables); i++ {
+		if !(LocalVariables[i].Key == selectedLocalVariable.Key && LocalVariables[i].Value == selectedLocalVariable.Value) {
+			newLocalVariables = append(newLocalVariables, LocalVariables[i])
+		}
+	}
+
+	storage.Collections[collectionIndex].LocalVariables = newLocalVariables
+
+	if err := WriteFile(storage); err != nil {
+		return nil, err
+	}
+
+	return newLocalVariables, nil
 }
 
 func WriteFile(storage Storage) error {
