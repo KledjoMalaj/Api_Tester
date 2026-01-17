@@ -29,7 +29,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Collections = m.storage.Collections
 
 		if m.CurrentPage == CollectionPage || m.CurrentPage == HeadersPage ||
-			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage || m.CurrentPage == ResponsePage {
+			m.CurrentPage == RequestPage || m.CurrentPage == QueryParamsPage ||
+			m.CurrentPage == ResponsePage || m.CurrentPage == VariablesPage {
 
 			if m.collectionIndex >= 0 && m.collectionIndex < len(m.Collections) {
 				m.SelectedCollection = m.Collections[m.collectionIndex]
@@ -820,7 +821,11 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				}
 			case "enter":
 				selectedResponse := m.Responses[m.pointer]
-				err := addLocalVariable(m.storage, m.collectionIndex, selectedResponse, m.LocalVariables)
+				newLocalVariable := LocalVariable{
+					Key:   selectedResponse.Key,
+					Value: selectedResponse.Value,
+				}
+				err := addLocalVariable(m.storage, m.collectionIndex, newLocalVariable)
 				if err != nil {
 					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
 				}
@@ -840,8 +845,46 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 }
 
 func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.addVariableValue.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.addVariableValue.Blur()
+				m.addVariableValue.SetValue("")
+			case "enter":
+				m.LocalVariables[m.pointer].Value = m.addVariableValue.Value()
+				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables[m.pointer])
+				if err != nil {
+					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
+				}
+				m.addVariableValue.Blur()
+				m.addVariableValue.SetValue("")
+			}
+			m.addVariableValue, cmd = m.addVariableValue.Update(msg)
+			return m, cmd
+		}
+		if m.addVariableKey.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.addVariableKey.Blur()
+				m.addVariableKey.SetValue("")
+			case "enter":
+				NewResponse := LocalVariable{
+					Key:   m.addVariableKey.Value(),
+					Value: "",
+				}
+				err := addLocalVariable(m.storage, m.collectionIndex, NewResponse)
+				if err != nil {
+					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
+				}
+				m.addVariableKey.Blur()
+				m.addVariableKey.SetValue("")
+			}
+			m.addVariableKey, cmd = m.addVariableKey.Update(msg)
+			return m, cmd
+		}
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
@@ -865,6 +908,10 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					m.pointer--
 				}
 			}
+		case ":":
+			m.addVariableKey.Focus()
+		case "enter":
+			m.addVariableValue.Focus()
 		}
 	}
 	return m, nil

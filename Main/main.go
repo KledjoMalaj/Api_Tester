@@ -62,9 +62,11 @@ type model struct {
 	editingQueryParams  textinput.Model
 	QueryParams         []QueryParam
 
-	Responses      []Response
-	LocalVariables []LocalVariable
-	VariablesFocus bool
+	Responses        []Response
+	LocalVariables   []LocalVariable
+	VariablesFocus   bool
+	addVariableKey   textinput.Model
+	addVariableValue textinput.Model
 
 	apiResponse ApiResponse
 
@@ -110,6 +112,14 @@ func NewModel(storage Storage) model {
 	QueryParamsValue.Placeholder = "Add Query Params Value..."
 	QueryParamsValue.Width = 50
 
+	VariableKey := textinput.New()
+	VariableKey.Placeholder = "Add New Variable Key..."
+	VariableKey.Width = 50
+
+	VariableValue := textinput.New()
+	VariableValue.Placeholder = "Add New Variable Value..."
+	VariableValue.Width = 50
+
 	return model{
 		CurrentPage:         HomePage,
 		jsonInput:           ti,
@@ -124,6 +134,8 @@ func NewModel(storage Storage) model {
 		bodyFiledValueInput: bodyFiledValue,
 		addQueryParamsKey:   QueryParamsKey,
 		addQueryParamsValue: QueryParamsValue,
+		addVariableKey:      VariableKey,
+		addVariableValue:    VariableValue,
 	}
 }
 

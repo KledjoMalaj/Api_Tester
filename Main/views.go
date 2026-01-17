@@ -473,28 +473,34 @@ func VariablesPageView(m model) string {
 	style1 := OptionsStyle(m.termWidth - 4)
 	style2 := TitleStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
+	styleInput := inputStyle(m.termWidth)
 
 	var b strings.Builder
-	b.WriteString(style2.Render("Variables Page :"))
+	b.WriteString(style2.Render("Variables Page "))
 	b.WriteString("\n")
-	var variables []string
+
+	var items []string
 
 	if len(m.LocalVariables) == 0 {
-		line := "No Variables loaded"
-		variables = append(variables, line)
-	}
-
-	for i, v := range m.LocalVariables {
-		var line string
-		if m.pointer == i {
-			line = style4.Render("> " + style5.Render(v.Key+" : "+v.Value+"\n"))
-		} else {
-			line = "  " + v.Key + " : " + v.Value + "\n"
+		line := "No Query Params\n\n"
+		items = append(items, line)
+	} else {
+		for i, h := range m.LocalVariables {
+			var line string
+			if m.pointer == i && m.editing {
+				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingQueryParams.View()+"\n")
+			} else if m.pointer == i && h.Value != "" {
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
+			} else if m.pointer == i {
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addVariableValue.View()+"\n")
+			} else {
+				line = style4.Render("   ") + h.Key + " : " + h.Value + "\n"
+			}
+			items = append(items, line)
 		}
-		variables = append(variables, line)
 	}
 
-	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
+	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addVariableKey.View())) + "\n\n"
 	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nd -> delete")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
