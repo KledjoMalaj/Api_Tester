@@ -91,6 +91,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case ResponsePage:
 			m, cmd := UpdateResponsePage(m, msg)
 			return m, cmd
+		case VariablesPage:
+			m, cmd := UpdateVariablesPage(m, msg)
+			return m, cmd
 		}
 	}
 
@@ -311,6 +314,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.errorMessage = ""
 				return m, nil
 			}
+		case "v":
+			m.CurrentPage = VariablesPage
+			m.LocalVariables = m.SelectedCollection.LocalVariables
 		}
 	}
 
@@ -826,6 +832,37 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				err := clipboard.WriteAll(selectedResponse.Value)
 				if err != nil {
 					return m, showErrorCommand("Failed to Copy Response: " + err.Error())
+				}
+			}
+		}
+	}
+	return m, nil
+}
+
+func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = CollectionPage
+		case "up", "k":
+			if m.pointer > 0 {
+				m.pointer--
+			}
+		case "down", "j":
+			if m.pointer < len(m.LocalVariables)-1 {
+				m.pointer++
+			}
+		case "d":
+			if len(m.LocalVariables) > 0 {
+				selectedVariable := m.LocalVariables[m.pointer]
+				newLocalVariables, err := deleteLocalVariable(selectedVariable, m.storage, m.collectionIndex)
+				if err != nil {
+					return m, showErrorCommand("Failed to delete Local Variable : " + err.Error())
+				}
+				m.LocalVariables = newLocalVariables
+				if m.pointer >= len(m.LocalVariables) && m.pointer > 0 {
+					m.pointer--
 				}
 			}
 		}

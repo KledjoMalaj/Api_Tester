@@ -21,6 +21,7 @@ const (
 	QueryParamsPage
 	LoadingPage
 	ResponsePage
+	VariablesPage
 )
 
 type model struct {
