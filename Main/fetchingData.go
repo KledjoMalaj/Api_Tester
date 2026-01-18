@@ -21,13 +21,15 @@ type ApiResponse struct {
 }
 
 func FetchData(SelectedApi Api, m model) ApiResponse {
-	headers := SelectedApi.Headers
-	api := buildURL(SelectedApi)
+	processedApi := processRequest(SelectedApi, m.SelectedCollection.LocalVariables)
+
+	headers := processedApi.Headers
+	api := buildURL(processedApi)
 
 	url := strings.TrimSpace(api)
 	url = strings.Trim(url, `"`)
 
-	method := SelectedApi.Method
+	method := processedApi.Method
 
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
@@ -65,7 +67,7 @@ func FetchData(SelectedApi Api, m model) ApiResponse {
 }
 
 func PostAPiFunc(m model) ApiResponse {
-	SelectedApi := m.SelectedApi
+	SelectedApi := processRequest(m.SelectedApi, m.LocalVariables)
 
 	headers := m.SelectedApi.Headers
 
@@ -173,4 +175,31 @@ func buildURL(api Api) string {
 	}
 
 	return api.Url + "?" + strings.Join(params, "&")
+}
+
+func processRequest(api Api, variables []LocalVariable) Api {
+	processed := api
+
+	processed.Url = replaceVariables(api.Url, variables)
+
+	for i := range processed.Headers {
+		processed.Headers[i].Value = replaceVariables(api.Headers[i].Value, variables)
+	}
+	for i := range processed.QueryParams {
+		processed.QueryParams[i].Value = replaceVariables(api.QueryParams[i].Value, variables)
+	}
+	for i := range processed.BodyField {
+		processed.BodyField[i].Value = replaceVariables(api.BodyField[i].Value, variables)
+	}
+
+	return processed
+}
+
+func replaceVariables(text string, variables []LocalVariable) string {
+	result := text
+	for _, variable := range variables {
+		placeholder := "{{" + variable.Key + "}}"
+		result = strings.ReplaceAll(result, placeholder, variable.Value)
+	}
+	return result
 }

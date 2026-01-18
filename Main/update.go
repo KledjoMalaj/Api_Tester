@@ -251,10 +251,12 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			m.SelectedApi = m.Apis[m.pointer]
 
-			switch m.SelectedApi.Method {
+			processedApi := processRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)
+
+			switch processedApi.Method {
 			case "POST", "DELETE", "PUT", "PATCH":
-				m.SelectedApi = m.Apis[m.pointer]
-				m.BodyFields = m.SelectedApi.BodyField
+				m.SelectedApi = processedApi
+				m.BodyFields = processedApi.BodyField
 				m.ApiIndex = m.pointer
 				m.CurrentPage = RequestPage
 				m.pointer = 0
