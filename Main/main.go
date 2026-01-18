@@ -62,11 +62,12 @@ type model struct {
 	editingQueryParams  textinput.Model
 	QueryParams         []QueryParam
 
-	Responses        []Response
-	LocalVariables   []LocalVariable
-	VariablesFocus   bool
-	addVariableKey   textinput.Model
-	addVariableValue textinput.Model
+	Responses             []Response
+	LocalVariables        []LocalVariable
+	VariablesFocus        bool
+	addVariableKey        textinput.Model
+	addVariableValue      textinput.Model
+	editingLocalVariables textinput.Model
 
 	apiResponse ApiResponse
 

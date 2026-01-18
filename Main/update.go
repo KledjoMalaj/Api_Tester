@@ -318,6 +318,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "v":
 			m.CurrentPage = VariablesPage
 			m.LocalVariables = m.SelectedCollection.LocalVariables
+			m.pointer = 0
 		}
 	}
 
@@ -825,7 +826,8 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Key:   selectedResponse.Key,
 					Value: selectedResponse.Value,
 				}
-				err := addLocalVariable(m.storage, m.collectionIndex, newLocalVariable)
+				m.LocalVariables = append(m.LocalVariables, newLocalVariable)
+				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
 				if err != nil {
 					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
 				}
@@ -848,6 +850,23 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.editingLocalVariables.Focused() {
+			switch msg.String() {
+			case "esc":
+				m.editing = false
+				m.editingLocalVariables.Blur()
+				return m, nil
+			case "enter":
+				m.LocalVariables[m.pointer].Value = m.editingLocalVariables.Value()
+				if err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables); err != nil {
+					return m, showErrorCommand("Failed to edit Local Variable : " + err.Error())
+				}
+				m.editing = false
+				m.editingLocalVariables.Blur()
+			}
+			m.editingLocalVariables, cmd = m.editingLocalVariables.Update(msg)
+			return m, cmd
+		}
 		if m.addVariableValue.Focused() {
 			switch msg.String() {
 			case "esc":
@@ -855,7 +874,7 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.addVariableValue.SetValue("")
 			case "enter":
 				m.LocalVariables[m.pointer].Value = m.addVariableValue.Value()
-				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables[m.pointer])
+				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
 				if err != nil {
 					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
 				}
@@ -875,7 +894,8 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Key:   m.addVariableKey.Value(),
 					Value: "",
 				}
-				err := addLocalVariable(m.storage, m.collectionIndex, NewResponse)
+				m.LocalVariables = append(m.LocalVariables, NewResponse)
+				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
 				if err != nil {
 					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
 				}
@@ -912,6 +932,12 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.addVariableKey.Focus()
 		case "enter":
 			m.addVariableValue.Focus()
+		case "e":
+			m.editing = true
+			value := m.LocalVariables[m.pointer].Value
+			m.editingLocalVariables = textinput.New()
+			m.editingLocalVariables.SetValue(value)
+			m.editingLocalVariables.Focus()
 		}
 	}
 	return m, nil

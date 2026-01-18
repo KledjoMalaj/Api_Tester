@@ -488,7 +488,7 @@ func VariablesPageView(m model) string {
 		for i, h := range m.LocalVariables {
 			var line string
 			if m.pointer == i && m.editing {
-				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingQueryParams.View()+"\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingLocalVariables.View()+"\n")
 			} else if m.pointer == i && h.Value != "" {
 				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
 			} else if m.pointer == i {
@@ -500,8 +500,16 @@ func VariablesPageView(m model) string {
 		}
 	}
 
-	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addVariableKey.View())) + "\n\n"
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nd -> delete")
+	var errorWarning string
+
+	if m.hasError {
+		errorStyle := errorStyle(m.termWidth)
+		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		errorWarning = line
+	}
+
+	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addVariableKey.View())) + "\n\n" + errorWarning
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nd -> delete\n\ne -> edit")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
