@@ -37,7 +37,7 @@ func FetchData(SelectedApi Api, m model) ApiResponse {
 	}
 
 	for i := 0; i < len(headers); i++ {
-		req.Header.Set(headers[i].Key, headers[i].Value)
+		req.Header.Set(headers[i].Key, replaceVariables(headers[i].Value, m.LocalVariables))
 	}
 
 	client := &http.Client{}
@@ -94,7 +94,7 @@ func PostAPiFunc(m model) ApiResponse {
 	headers = append(headers, newHeader)
 
 	for i := 0; i < len(headers); i++ {
-		req.Header.Set(headers[i].Key, headers[i].Value)
+		req.Header.Set(headers[i].Key, replaceVariables(headers[i].Value, m.LocalVariables))
 	}
 
 	// Send request
@@ -182,9 +182,6 @@ func processRequest(api Api, variables []LocalVariable) Api {
 
 	processed.Url = replaceVariables(api.Url, variables)
 
-	for i := range processed.Headers {
-		processed.Headers[i].Value = replaceVariables(api.Headers[i].Value, variables)
-	}
 	for i := range processed.QueryParams {
 		processed.QueryParams[i].Value = replaceVariables(api.QueryParams[i].Value, variables)
 	}
