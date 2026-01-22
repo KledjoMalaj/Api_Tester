@@ -71,7 +71,7 @@ func PostAPiFunc(m model) ApiResponse {
 
 	headers := m.SelectedApi.Headers
 
-	data := parseData(SelectedApi)
+	data := parseData(SelectedApi, m)
 
 	Url := buildURL(SelectedApi)
 	bodyReader := strings.NewReader(data)
@@ -123,7 +123,7 @@ func PostAPiFunc(m model) ApiResponse {
 
 	return m.apiResponse
 }
-func parseData(selectedApi Api) string {
+func parseData(selectedApi Api, m model) string {
 	if len(selectedApi.BodyField) == 0 {
 		return "{}"
 	}
@@ -144,7 +144,7 @@ func parseData(selectedApi Api) string {
 	}
 
 	b.WriteString("}")
-	return b.String()
+	return replaceVariables(b.String(), m.LocalVariables)
 }
 
 type apiResponseMsg struct {
@@ -184,9 +184,6 @@ func processRequest(api Api, variables []LocalVariable) Api {
 
 	for i := range processed.QueryParams {
 		processed.QueryParams[i].Value = replaceVariables(api.QueryParams[i].Value, variables)
-	}
-	for i := range processed.BodyField {
-		processed.BodyField[i].Value = replaceVariables(api.BodyField[i].Value, variables)
 	}
 
 	return processed
