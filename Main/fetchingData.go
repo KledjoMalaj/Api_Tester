@@ -24,7 +24,7 @@ func FetchData(SelectedApi Api, m model) ApiResponse {
 	processedApi := processRequest(SelectedApi, m.SelectedCollection.LocalVariables)
 
 	headers := processedApi.Headers
-	api := buildURL(processedApi)
+	api := buildURL(processedApi, m)
 
 	url := strings.TrimSpace(api)
 	url = strings.Trim(url, `"`)
@@ -73,7 +73,7 @@ func PostAPiFunc(m model) ApiResponse {
 
 	data := parseData(SelectedApi, m)
 
-	Url := buildURL(SelectedApi)
+	Url := buildURL(SelectedApi, m)
 	bodyReader := strings.NewReader(data)
 
 	url := strings.TrimSpace(Url)
@@ -164,14 +164,14 @@ func postApiCommand(m model) tea.Cmd {
 		return apiResponseMsg{response: response}
 	}
 }
-func buildURL(api Api) string {
+func buildURL(api Api, m model) string {
 	if len(api.QueryParams) == 0 {
 		return api.Url
 	}
 
 	var params []string
 	for _, param := range api.QueryParams {
-		params = append(params, url.QueryEscape(param.Key)+"="+url.QueryEscape(param.Value))
+		params = append(params, url.QueryEscape(param.Key)+"="+url.QueryEscape(replaceVariables(param.Value, m.LocalVariables)))
 	}
 
 	return api.Url + "?" + strings.Join(params, "&")
@@ -179,13 +179,7 @@ func buildURL(api Api) string {
 
 func processRequest(api Api, variables []LocalVariable) Api {
 	processed := api
-
 	processed.Url = replaceVariables(api.Url, variables)
-
-	for i := range processed.QueryParams {
-		processed.QueryParams[i].Value = replaceVariables(api.QueryParams[i].Value, variables)
-	}
-
 	return processed
 }
 
