@@ -330,13 +330,13 @@ func HeadersPageView(m model) string {
 			var line string
 
 			if m.pointer == i && m.editing {
-				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingHeader.View()+"\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.editingHeader.View()+"\n")
 			} else if m.pointer == i && h.Value == "" {
-				line = style4.Render("> ") + style5.Render(h.Key+" "+m.addHeaderValue.View()+"\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addHeaderValue.View()+"\n")
 			} else if m.pointer == i {
-				line = style4.Render("> ") + style5.Render(h.Key+" "+h.Value+"\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
 			} else {
-				line = style4.Render("   ") + (h.Key + " " + h.Value + "\n")
+				line = style4.Render("   ") + (h.Key + " : " + h.Value + "\n")
 			}
 
 			items = append(items, line)
@@ -380,7 +380,7 @@ func QueryParamsPageView(m model) string {
 		for i, h := range QueryParams {
 			var line string
 			if m.pointer == i && m.editing {
-				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingQueryParams.View()+"\n")
+				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.editingQueryParams.View()+"\n")
 			} else if m.pointer == i && h.Value != "" {
 				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
 			} else if m.pointer == i {
@@ -418,7 +418,6 @@ func loadingView(m model) string {
 
 func ResponsePageView(m model) string {
 	style1 := OptionsStyle(m.termWidth - 4)
-	copyStyle := CopytextStyle()
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
 	titleStyle := TitleStyle(m.termWidth)
 
@@ -432,36 +431,55 @@ func ResponsePageView(m model) string {
 	if len(m.Responses) == 0 {
 		line := "No Response loaded"
 		responses = append(responses, line)
-	}
+	} else {
+		maxVisible := 5
+		start := m.responseScrollOffset
+		end := start + maxVisible
 
-	for i, v := range m.Responses {
-		var line string
-		if m.pointer == i && !m.VariablesFocus {
-			line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value) + copyStyle.Render("          ...press C to copy value"+"\n")
-		} else {
-			line = "   " + v.Key + " : " + v.Value + "\n"
+		if end > len(m.Responses) {
+			end = len(m.Responses)
 		}
-		responses = append(responses, line)
+
+		for i := start; i < end; i++ {
+			v := m.Responses[i]
+			var line string
+			if m.pointer == i && !m.VariablesFocus {
+				line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value) + "\n"
+			} else {
+				line = "   " + v.Key + " : " + v.Value + "\n"
+			}
+			responses = append(responses, line)
+		}
 	}
 	var variables []string
 
 	if len(m.LocalVariables) == 0 {
 		line := "No Variables loaded"
 		variables = append(variables, line)
-	}
+	} else {
 
-	for i, v := range m.LocalVariables {
-		var line string
-		if m.pointer == i && m.VariablesFocus {
-			line = style4.Render("> " + style5.Render(v.Key+" : "+v.Value+"\n"))
-		} else {
-			line = "  " + v.Key + " : " + v.Value + "\n"
+		maxVisible := 5
+		start := m.variableScrollOffset
+		end := start + maxVisible
+
+		if end > len(m.LocalVariables) {
+			end = len(m.LocalVariables)
 		}
-		variables = append(variables, line)
+
+		for i := start; i < end; i++ {
+			v := m.LocalVariables[i]
+			var line string
+			if m.pointer == i && m.VariablesFocus {
+				line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value) + "\n"
+			} else {
+				line = "   " + v.Key + " : " + v.Value + "\n"
+			}
+			variables = append(variables, line)
+		}
 	}
 
 	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" + style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Add Variable\n\nv -> go to Variables\n\nr -> go to Response\n\nd -> delete")
+	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Add Variable\n\nv -> go to Variables\n\nr -> go to Response\n\nd -> Delete\n\nc -> Copy")
 	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)

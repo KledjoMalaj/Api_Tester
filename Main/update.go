@@ -160,6 +160,7 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.CurrentPage = CollectionPage
 			m.SelectedCollection = m.storage.Collections[m.pointer]
 			m.Apis = m.SelectedCollection.Requests
+			m.LocalVariables = m.SelectedCollection.LocalVariables
 			m.collectionIndex = m.pointer
 			m.pointer = 0
 
@@ -409,6 +410,8 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.LocalVariables = m.SelectedCollection.LocalVariables
 			m.CurrentPage = ResponsePage
 			m.pointer = 0
+			m.responseScrollOffset = 0
+			m.variableScrollOffset = 0
 		}
 	}
 
@@ -785,13 +788,23 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "r":
 				m.VariablesFocus = false
 				m.pointer = 0
+				m.responseScrollOffset = 0
 			case "up", "k":
 				if m.pointer > 0 {
 					m.pointer--
+
+					if m.pointer < m.variableScrollOffset {
+						m.variableScrollOffset--
+					}
 				}
 			case "down", "j":
 				if m.pointer < len(m.LocalVariables)-1 {
 					m.pointer++
+
+					maxVisible := 5
+					if m.pointer >= m.variableScrollOffset+maxVisible {
+						m.variableScrollOffset++
+					}
 				}
 			case "d":
 				if len(m.LocalVariables) > 0 {
@@ -817,10 +830,19 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "up", "k":
 				if m.pointer > 0 {
 					m.pointer--
+
+					if m.pointer < m.responseScrollOffset {
+						m.responseScrollOffset--
+					}
 				}
 			case "down", "j":
 				if m.pointer < len(m.Responses)-1 {
 					m.pointer++
+
+					maxVisible := 5
+					if m.pointer >= m.responseScrollOffset+maxVisible {
+						m.responseScrollOffset++
+					}
 				}
 			case "enter":
 				selectedResponse := m.Responses[m.pointer]
@@ -836,6 +858,7 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "v":
 				m.VariablesFocus = true
 				m.pointer = 0
+				m.variableScrollOffset = 0
 			case "c":
 				selectedResponse := m.Responses[m.pointer]
 				err := clipboard.WriteAll(selectedResponse.Value)

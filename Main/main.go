@@ -73,6 +73,9 @@ type model struct {
 
 	errorMessage string
 	hasError     bool
+
+	responseScrollOffset int
+	variableScrollOffset int
 }
 
 func NewModel(storage Storage) model {
