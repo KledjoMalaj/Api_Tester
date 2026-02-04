@@ -76,6 +76,8 @@ type model struct {
 
 	responseScrollOffset int
 	variableScrollOffset int
+
+	pageScrollOffset int
 }
 
 func NewModel(storage Storage) model {

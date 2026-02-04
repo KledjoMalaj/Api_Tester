@@ -151,10 +151,19 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
+
+				if m.pointer < m.pageScrollOffset {
+					m.pageScrollOffset--
+				}
 			}
 		case "down", "j":
 			if m.pointer < len(m.storage.Collections)-1 {
 				m.pointer++
+
+				maxVisible := 12
+				if m.pointer >= m.pageScrollOffset+maxVisible {
+					m.pageScrollOffset++
+				}
 			}
 		case "enter":
 			m.CurrentPage = CollectionPage
@@ -163,6 +172,7 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.LocalVariables = m.SelectedCollection.LocalVariables
 			m.collectionIndex = m.pointer
 			m.pointer = 0
+			m.pageScrollOffset = 0
 
 		case ":":
 			m.NewCollectionInput.Focus()
@@ -244,10 +254,19 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
+
+				if m.pointer < m.pageScrollOffset {
+					m.pageScrollOffset--
+				}
 			}
 		case "down", "j":
 			if m.pointer < len(m.Apis)-1 {
 				m.pointer++
+
+				maxVisible := 12
+				if m.pointer >= m.pageScrollOffset+maxVisible {
+					m.pageScrollOffset++
+				}
 			}
 		case "enter":
 			m.SelectedApi = m.Apis[m.pointer]
@@ -297,6 +316,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "esc":
 			m.CurrentPage = HomePage
 			m.pointer = m.collectionIndex
+			m.pageScrollOffset = 0
 
 		case "h":
 			m.CurrentPage = HeadersPage
@@ -488,6 +508,7 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		switch msg.String() {
 		case "enter":
+			m.pageScrollOffset = 0
 			m.CurrentPage = LoadingPage
 			m.apiResponse = PostAPiFunc(m)
 			m.Responses, _ = HandleJson(m.apiResponse)
@@ -499,13 +520,23 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			m.newBodyFieldInput.Focus()
 		case "esc":
 			m.CurrentPage = CollectionPage
+			m.pageScrollOffset = 0
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
+
+				if m.pointer < m.pageScrollOffset {
+					m.pageScrollOffset--
+				}
 			}
 		case "down", "j":
 			if m.pointer < len(m.BodyFields)-1 {
 				m.pointer++
+
+				maxVisible := 12
+				if m.pointer >= m.pageScrollOffset+maxVisible {
+					m.pageScrollOffset++
+				}
 			}
 		case "d":
 			if len(m.BodyFields) > 0 {
@@ -606,6 +637,7 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "esc":
 			m.CurrentPage = CollectionPage
 			m.pointer = m.ApiIndex
+			m.pageScrollOffset = 0
 
 			m.SelectedApi = m.Apis[m.ApiIndex]
 			m.Headers = m.SelectedApi.Headers
@@ -632,11 +664,20 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
+
+				if m.pointer < m.pageScrollOffset {
+					m.pageScrollOffset--
+				}
 			}
 
 		case "down", "j":
 			if m.pointer < len(m.Headers)-1 {
 				m.pointer++
+
+				maxVisible := 12
+				if m.pointer >= m.pageScrollOffset+maxVisible {
+					m.pageScrollOffset++
+				}
 			}
 
 		case "e":
@@ -723,6 +764,7 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "esc":
 			m.CurrentPage = CollectionPage
 			m.pointer = m.ApiIndex
+			m.pageScrollOffset = 0
 		case ":":
 			m.addQueryParamsKey.Focus()
 		case "enter":
@@ -730,10 +772,19 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
+
+				if m.pointer < m.pageScrollOffset {
+					m.pageScrollOffset--
+				}
 			}
 		case "down", "j":
 			if m.pointer < len(m.QueryParams)-1 {
 				m.pointer++
+
+				maxVisible := 12
+				if m.pointer >= m.pageScrollOffset+maxVisible {
+					m.pageScrollOffset++
+				}
 			}
 		case "e":
 			m.editing = true
@@ -933,13 +984,23 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = CollectionPage
+			m.pageScrollOffset = 0
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
+
+				if m.pointer < m.pageScrollOffset {
+					m.pageScrollOffset--
+				}
 			}
 		case "down", "j":
 			if m.pointer < len(m.LocalVariables)-1 {
 				m.pointer++
+
+				maxVisible := 12
+				if m.pointer >= m.pageScrollOffset+maxVisible {
+					m.pageScrollOffset++
+				}
 			}
 		case "d":
 			if len(m.LocalVariables) > 0 {

@@ -47,22 +47,35 @@ func Homepage(m model) string {
 	collections := m.storage.Collections
 
 	var items []string
+	if len(collections) == 0 {
+		line := "No Collections ..."
+		items = append(items, line)
+	} else {
 
-	for i := 0; i < len(collections); i++ {
-		text := collections[i].Name
+		maxVisible := 12
+		start := m.pageScrollOffset
+		end := start + maxVisible
 
-		if i == m.pointer && m.editing {
-			line := style4.Render("> ") + m.editingCollection.View() + "\n"
-			items = append(items, line)
-			continue
+		if end > len(m.Collections) {
+			end = len(m.Collections)
 		}
 
-		if i == m.pointer {
-			text = style4.Render("> ") + style5.Render(text+"\n")
-		} else {
-			text = "   " + text + "\n"
+		for i := start; i < end; i++ {
+			text := collections[i].Name
+
+			if i == m.pointer && m.editing {
+				line := style4.Render("> ") + m.editingCollection.View() + "\n"
+				items = append(items, line)
+				continue
+			}
+
+			if i == m.pointer {
+				text = style4.Render("> ") + style5.Render(text+"\n")
+			} else {
+				text = "   " + text + "\n"
+			}
+			items = append(items, text)
 		}
-		items = append(items, text)
 	}
 
 	var errorWarning string
@@ -95,22 +108,36 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 
 	var items []string
 
-	for i := 0; i < len(m.Apis); i++ {
-		api := m.Apis[i]
+	if len(m.Apis) == 0 {
+		line := "No Apies ..."
+		items = append(items, line)
+	} else {
 
-		if i == m.pointer && m.editing {
-			line := style4.Render("> ") + m.editingApi.View() + "\n"
-			items = append(items, line)
-			continue
+		maxVisible := 12
+		start := m.pageScrollOffset
+		end := start + maxVisible
+
+		if end > len(m.Apis) {
+			end = len(m.Apis)
 		}
 
-		text := api.Method + " " + api.Url
-		if i == m.pointer {
-			text = style4.Render("> ") + style5.Render(text+"\n")
-		} else {
-			text = "   " + text + "\n"
+		for i := start; i < end; i++ {
+			api := m.Apis[i]
+
+			if i == m.pointer && m.editing {
+				line := style4.Render("> ") + m.editingApi.View() + "\n"
+				items = append(items, line)
+				continue
+			}
+
+			text := api.Method + " " + api.Url
+			if i == m.pointer {
+				text = style4.Render("> ") + style5.Render(text+"\n")
+			} else {
+				text = "   " + text + "\n"
+			}
+			items = append(items, text)
 		}
-		items = append(items, text)
 	}
 
 	var errorWarning string
@@ -218,7 +245,16 @@ func ReqPage(m model) string {
 		items = append(items, line)
 
 	} else {
-		for i := 0; i < len(bodyFields); i++ {
+
+		maxVisible := 12
+		start := m.pageScrollOffset
+		end := start + maxVisible
+
+		if end > len(bodyFields) {
+			end = len(bodyFields)
+		}
+
+		for i := start; i < end; i++ {
 			var line string
 
 			if m.pointer == i && m.editing {
@@ -326,17 +362,26 @@ func HeadersPageView(m model) string {
 		line := style4.Render("No headers\n\n")
 		items = append(items, line)
 	} else {
-		for i, h := range headers {
+
+		maxVisible := 12
+		start := m.pageScrollOffset
+		end := start + maxVisible
+
+		if end > len(headers) {
+			end = len(headers)
+		}
+
+		for i := start; i < end; i++ {
 			var line string
 
 			if m.pointer == i && m.editing {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.editingHeader.View()+"\n")
-			} else if m.pointer == i && h.Value == "" {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addHeaderValue.View()+"\n")
+				line = style4.Render("> ") + style5.Render(headers[i].Key+" : "+m.editingHeader.View()+"\n")
+			} else if m.pointer == i && headers[i].Value == "" {
+				line = style4.Render("> ") + style5.Render(headers[i].Key+" : "+m.addHeaderValue.View()+"\n")
 			} else if m.pointer == i {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
+				line = style4.Render("> ") + style5.Render(headers[i].Key+" : "+headers[i].Value+"\n")
 			} else {
-				line = style4.Render("   ") + (h.Key + " : " + h.Value + "\n")
+				line = style4.Render("   ") + (headers[i].Key + " : " + headers[i].Value + "\n")
 			}
 
 			items = append(items, line)
@@ -377,16 +422,25 @@ func QueryParamsPageView(m model) string {
 		line := "No Query Params\n\n"
 		items = append(items, line)
 	} else {
-		for i, h := range QueryParams {
+
+		maxVisible := 12
+		start := m.pageScrollOffset
+		end := start + maxVisible
+
+		if end > len(QueryParams) {
+			end = len(QueryParams)
+		}
+
+		for i := start; i < end; i++ {
 			var line string
 			if m.pointer == i && m.editing {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.editingQueryParams.View()+"\n")
-			} else if m.pointer == i && h.Value != "" {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
+				line = style4.Render("> ") + style5.Render(QueryParams[i].Key+" : "+m.editingQueryParams.View()+"\n")
+			} else if m.pointer == i && QueryParams[i].Value != "" {
+				line = style4.Render("> ") + style5.Render(QueryParams[i].Key+" : "+QueryParams[i].Value+"\n")
 			} else if m.pointer == i {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addQueryParamsValue.View()+"\n")
+				line = style4.Render("> ") + style5.Render(QueryParams[i].Key+" : "+m.addQueryParamsValue.View()+"\n")
 			} else {
-				line = style4.Render("   ") + h.Key + " : " + h.Value + "\n"
+				line = style4.Render("   ") + QueryParams[i].Key + " : " + QueryParams[i].Value + "\n"
 			}
 			items = append(items, line)
 		}
@@ -503,16 +557,25 @@ func VariablesPageView(m model) string {
 		line := "No Query Params\n\n"
 		items = append(items, line)
 	} else {
-		for i, h := range m.LocalVariables {
+
+		maxVisible := 12
+		start := m.pageScrollOffset
+		end := start + maxVisible
+
+		if end > len(m.LocalVariables) {
+			end = len(m.LocalVariables)
+		}
+
+		for i := start; i < end; i++ {
 			var line string
 			if m.pointer == i && m.editing {
-				line = style4.Render("> ") + style5.Render(h.Key+" "+m.editingLocalVariables.View()+"\n")
-			} else if m.pointer == i && h.Value != "" {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+h.Value+"\n")
+				line = style4.Render("> ") + style5.Render(m.LocalVariables[i].Key+" "+m.editingLocalVariables.View()+"\n")
+			} else if m.pointer == i && m.LocalVariables[i].Value != "" {
+				line = style4.Render("> ") + style5.Render(m.LocalVariables[i].Key+" : "+m.LocalVariables[i].Value+"\n")
 			} else if m.pointer == i {
-				line = style4.Render("> ") + style5.Render(h.Key+" : "+m.addVariableValue.View()+"\n")
+				line = style4.Render("> ") + style5.Render(m.LocalVariables[i].Key+" : "+m.addVariableValue.View()+"\n")
 			} else {
-				line = style4.Render("   ") + h.Key + " : " + h.Value + "\n"
+				line = style4.Render("   ") + m.LocalVariables[i].Key + " : " + m.LocalVariables[i].Value + "\n"
 			}
 			items = append(items, line)
 		}
