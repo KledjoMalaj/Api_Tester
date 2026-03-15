@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -162,10 +161,6 @@ func formatJSONValue(value string) string {
 		return value
 	}
 
-	if isNumber(value) {
-		return value
-	}
-
 	trimmed := strings.TrimSpace(value)
 	if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
 		return value
@@ -176,11 +171,6 @@ func formatJSONValue(value string) string {
 	}
 
 	return fmt.Sprintf("\"%s\"", value)
-}
-
-func isNumber(s string) bool {
-	_, err := strconv.ParseFloat(s, 64)
-	return err == nil
 }
 
 type apiResponseMsg struct {
