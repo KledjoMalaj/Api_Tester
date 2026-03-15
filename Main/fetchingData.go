@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -133,8 +134,12 @@ func parseData(selectedApi Api, m model) string {
 	b.WriteString("{\n")
 
 	for i, field := range selectedApi.BodyField {
-		// Add key-value pair
-		b.WriteString(fmt.Sprintf("  \"%s\": \"%s\"", field.Key, field.Value))
+		key := field.Key
+		value := field.Value
+
+		formattedValue := formatJSONValue(value)
+
+		b.WriteString(fmt.Sprintf("  \"%s\": %s", key, formattedValue))
 
 		// Add comma if not the last item
 		if i < len(selectedApi.BodyField)-1 {
@@ -144,7 +149,38 @@ func parseData(selectedApi Api, m model) string {
 	}
 
 	b.WriteString("}")
+
 	return replaceVariables(b.String(), m.LocalVariables)
+}
+
+func formatJSONValue(value string) string {
+	if value == "null" {
+		return "null"
+	}
+
+	if value == "true" || value == "false" {
+		return value
+	}
+
+	if isNumber(value) {
+		return value
+	}
+
+	trimmed := strings.TrimSpace(value)
+	if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
+		return value
+	}
+
+	if strings.HasPrefix(trimmed, "{") && strings.HasSuffix(trimmed, "}") {
+		return value
+	}
+
+	return fmt.Sprintf("\"%s\"", value)
+}
+
+func isNumber(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
 }
 
 type apiResponseMsg struct {

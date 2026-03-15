@@ -554,7 +554,7 @@ func VariablesPageView(m model) string {
 	var items []string
 
 	if len(m.LocalVariables) == 0 {
-		line := "No Query Params\n\n"
+		line := "No Variables\n\n"
 		items = append(items, line)
 	} else {
 
