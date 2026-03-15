@@ -87,8 +87,8 @@ func Homepage(m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewCollectionInput.View())) + "\n\n" + errorWarning
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style2.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / e - Edit")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 	return b.String()
@@ -149,8 +149,8 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewApiInput.View())) + "\n\n" + errorWarning
-	rightBox := style2.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\ne -> Edit\n\nh -> Headers\n\nq -> QueryParams")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style2.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / e - Edit / h - Headers / q - QueryParams ")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 	return b.String()
@@ -279,8 +279,8 @@ func ReqPage(m model) string {
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.newBodyFieldInput.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Open\n\n: -> Add New\n\nd -> Delete\n\nv -> Add Value\n\ne -> edit")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / v - Add Value / e - edit")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 
@@ -397,8 +397,8 @@ func HeadersPageView(m model) string {
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addHeaderKey.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val\n\ne -> edit")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 
@@ -455,8 +455,8 @@ func QueryParamsPageView(m model) string {
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addQueryParamsKey.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\n: -> Add New\n\nd -> Delete\n\nEnter -> Add Val\n\ne -> edit")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 
@@ -533,8 +533,8 @@ func ResponsePageView(m model) string {
 	}
 
 	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" + style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nEnter -> Add Variable\n\nv -> go to Variables\n\nr -> go to Response\n\nd -> Delete\n\nc -> Copy")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style3.Render("Commands / ESC - Quit / k - Up / j -> Down / Enter - Add Variable / v - go to Variables / r - go to Response / d - Delete / c - Copy")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 
@@ -590,8 +590,8 @@ func VariablesPageView(m model) string {
 	}
 
 	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addVariableKey.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands\n----------------\nESC -> Quit\n\nk -> Up\n\nj -> Down\n\nd -> delete\n\ne -> edit")
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / d - delete / e - edit")
+	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, rightBox)
 
 	b.WriteString(layout)
 

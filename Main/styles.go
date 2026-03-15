@@ -16,7 +16,7 @@ func TitleStyle(termWidth int) lipgloss.Style {
 		Foreground(lipgloss.Color("210")).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("202")).
-		Width(termWidth - 3).
+		Width(termWidth - 2).
 		Align(lipgloss.Center)
 }
 
@@ -25,10 +25,9 @@ func HomePageStyle2(termWidth, termHeight int) lipgloss.Style {
 		Foreground(lipgloss.Color("210")).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("202")).
-		Height(termHeight - 7).
-		PaddingRight(1).PaddingLeft(1).
-		Align(lipgloss.Center).
-		MarginLeft(2)
+		Width(termWidth - 2).
+		Align(lipgloss.Center)
+
 }
 
 func OptionsStyle(termWidth int) lipgloss.Style {
@@ -36,7 +35,7 @@ func OptionsStyle(termWidth int) lipgloss.Style {
 		Foreground(lipgloss.Color("210")).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#3C3C3C")).
-		Width(termWidth - 25).
+		Width(termWidth - 2).
 		Padding(1)
 }
 
@@ -114,7 +113,7 @@ func inputStyle(termWidth int) lipgloss.Style {
 		Foreground(lipgloss.Color("10")).
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#3C3C3C")).
-		Width(termWidth - 25)
+		Width(termWidth - 2)
 }
 
 func errorStyle(termWidth int) lipgloss.Style {
