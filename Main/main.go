@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GoTuiFrontend/models"
 	"fmt"
 	"log"
 	"os"
@@ -27,12 +28,12 @@ const (
 type model struct {
 	NewApiInput        textinput.Model
 	NewCollectionInput textinput.Model
-	storage            Storage
-	SelectedCollection Collection
+	storage            models.Storage
+	SelectedCollection models.Collection
 	collectionIndex    int
-	SelectedApi        Api
-	Apis               []Api
-	Collections        []Collection
+	SelectedApi        models.Api
+	Apis               []models.Api
+	Collections        []models.Collection
 	CurrentPage        View
 	termWidth          int
 	termHeight         int
@@ -49,21 +50,21 @@ type model struct {
 	addHeaderKey   textinput.Model
 	addHeaderValue textinput.Model
 	editingHeader  textinput.Model
-	Headers        []Header
+	Headers        []models.Header
 	ApiIndex       int
 
 	newBodyFieldInput   textinput.Model
 	bodyFiledValueInput textinput.Model
 	editingBodyFields   textinput.Model
-	BodyFields          []BodyField
+	BodyFields          []models.BodyField
 
 	addQueryParamsKey   textinput.Model
 	addQueryParamsValue textinput.Model
 	editingQueryParams  textinput.Model
-	QueryParams         []QueryParam
+	QueryParams         []models.QueryParam
 
-	Responses             []Response
-	LocalVariables        []LocalVariable
+	Responses             []models.Response
+	LocalVariables        []models.LocalVariable
 	VariablesFocus        bool
 	addVariableKey        textinput.Model
 	addVariableValue      textinput.Model
@@ -80,7 +81,7 @@ type model struct {
 	pageScrollOffset int
 }
 
-func NewModel(storage Storage) model {
+func NewModel(storage models.Storage) model {
 	ti := textinput.New()
 	ti.Placeholder = "Enter JSON Body here..."
 	ti.CharLimit = 50

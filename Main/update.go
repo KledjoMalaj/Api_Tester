@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GoTuiFrontend/models"
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -25,7 +26,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case fileChangedMsg:
-		m.storage = Storage(msg)
+		m.storage = models.Storage(msg)
 		m.Collections = m.storage.Collections
 
 		if m.CurrentPage == CollectionPage || m.CurrentPage == HeadersPage ||
@@ -471,7 +472,7 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.newBodyFieldInput.SetValue("")
 			case "enter":
 				newBodyFieldKey := m.newBodyFieldInput.Value()
-				newBodyFiled := BodyField{
+				newBodyFiled := models.BodyField{
 					Key:   newBodyFieldKey,
 					Value: "",
 				}
@@ -602,7 +603,7 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				headerKey := m.addHeaderKey.Value()
-				newHeder := Header{
+				newHeder := models.Header{
 					Key: headerKey,
 				}
 				m.Headers = append(m.Headers, newHeder)
@@ -728,7 +729,7 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.addQueryParamsKey.Blur()
 			case "enter":
 				key := m.addQueryParamsKey.Value()
-				newQueryParam := QueryParam{
+				newQueryParam := models.QueryParam{
 					Key:   key,
 					Value: "",
 				}
@@ -897,7 +898,7 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				}
 			case "enter":
 				selectedResponse := m.Responses[m.pointer]
-				newLocalVariable := LocalVariable{
+				newLocalVariable := models.LocalVariable{
 					Key:   selectedResponse.Key,
 					Value: selectedResponse.Value,
 				}
@@ -966,7 +967,7 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.addVariableKey.Blur()
 				m.addVariableKey.SetValue("")
 			case "enter":
-				NewResponse := LocalVariable{
+				NewResponse := models.LocalVariable{
 					Key:   m.addVariableKey.Value(),
 					Value: "",
 				}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GoTuiFrontend/models"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,12 +16,12 @@ type ApiResponse struct {
 	Status         string
 	Body           string
 	Headers        http.Header
-	RequestHeaders []Header
+	RequestHeaders []models.Header
 	ContentType    string
 	ContentLength  int64
 }
 
-func FetchData(SelectedApi Api, m model) ApiResponse {
+func FetchData(SelectedApi models.Api, m model) ApiResponse {
 	processedApi := processRequest(SelectedApi, m.SelectedCollection.LocalVariables)
 
 	headers := processedApi.Headers
@@ -86,7 +87,7 @@ func PostAPiFunc(m model) ApiResponse {
 		return ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 
-	newHeader := Header{
+	newHeader := models.Header{
 		Key:   "Content-Type",
 		Value: "application/json",
 	}
@@ -123,7 +124,7 @@ func PostAPiFunc(m model) ApiResponse {
 
 	return m.apiResponse
 }
-func parseData(selectedApi Api, m model) string {
+func parseData(selectedApi models.Api, m model) string {
 	if len(selectedApi.BodyField) == 0 {
 		return "{}"
 	}
@@ -177,7 +178,7 @@ type apiResponseMsg struct {
 	response ApiResponse
 }
 
-func fetchApiCommand(api Api, m model) tea.Cmd {
+func fetchApiCommand(api models.Api, m model) tea.Cmd {
 	return func() tea.Msg {
 		response := FetchData(api, m)
 		return apiResponseMsg{response: response}
@@ -190,7 +191,7 @@ func postApiCommand(m model) tea.Cmd {
 		return apiResponseMsg{response: response}
 	}
 }
-func buildURL(api Api, m model) string {
+func buildURL(api models.Api, m model) string {
 	if len(api.QueryParams) == 0 {
 		return api.Url
 	}
@@ -203,13 +204,13 @@ func buildURL(api Api, m model) string {
 	return api.Url + "?" + strings.Join(params, "&")
 }
 
-func processRequest(api Api, variables []LocalVariable) Api {
+func processRequest(api models.Api, variables []models.LocalVariable) models.Api {
 	processed := api
 	processed.Url = replaceVariables(api.Url, variables)
 	return processed
 }
 
-func replaceVariables(text string, variables []LocalVariable) string {
+func replaceVariables(text string, variables []models.LocalVariable) string {
 	result := text
 	for _, variable := range variables {
 		placeholder := "{{" + variable.Key + "}}"
