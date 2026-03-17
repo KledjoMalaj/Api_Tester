@@ -1,4 +1,4 @@
-package main
+package operations
 
 import (
 	"GoTuiFrontend/models"
@@ -14,16 +14,6 @@ import (
 )
 
 var fileName string = "APITEST1.json"
-
-type errorMsg struct {
-	message string
-}
-
-func showErrorCommand(message string) tea.Cmd {
-	return func() tea.Msg {
-		return errorMsg{message: message}
-	}
-}
 
 func CreateFile() error {
 	file, err := os.Create(fileName)
@@ -100,7 +90,7 @@ func AddCollection(storage models.Storage, collections []models.Collection, Coll
 	return WriteFile(storage)
 }
 
-func deleteApi(selectedApi models.Api, storage models.Storage, collectionIndex int) ([]models.Api, error) {
+func DeleteApi(selectedApi models.Api, storage models.Storage, collectionIndex int) ([]models.Api, error) {
 	Apis := storage.Collections[collectionIndex].Requests
 	var newApis []models.Api
 	for i := 0; i < len(Apis); i++ {
@@ -116,7 +106,7 @@ func deleteApi(selectedApi models.Api, storage models.Storage, collectionIndex i
 
 	return newApis, nil
 }
-func deleteCollection(selectedCollection models.Collection, storage models.Storage) ([]models.Collection, error) {
+func DeleteCollection(selectedCollection models.Collection, storage models.Storage) ([]models.Collection, error) {
 	Collections := storage.Collections
 	var newCollections []models.Collection
 
@@ -134,7 +124,7 @@ func deleteCollection(selectedCollection models.Collection, storage models.Stora
 	return newCollections, nil
 }
 
-func editApi(storage models.Storage, collectionIndex int, selectedApi models.Api, newApi string) error {
+func EditApi(storage models.Storage, collectionIndex int, selectedApi models.Api, newApi string) error {
 	parts := strings.SplitN(newApi, " ", 2)
 	if len(parts) < 2 {
 		return fmt.Errorf("invalid format: expected 'METHOD URL' (e.g., 'GET https://api.com')")
@@ -163,7 +153,7 @@ func editApi(storage models.Storage, collectionIndex int, selectedApi models.Api
 	return WriteFile(storage)
 }
 
-func editCollection(storage models.Storage, selectedCollection models.Collection, newCollection string) error {
+func EditCollection(storage models.Storage, selectedCollection models.Collection, newCollection string) error {
 	if newCollection == "" {
 		return fmt.Errorf("collection name cannot be empty")
 	}
@@ -176,12 +166,12 @@ func editCollection(storage models.Storage, selectedCollection models.Collection
 	return WriteFile(storage)
 }
 
-func addHeader(headers []models.Header, storage models.Storage, collectionIndex int, apiIndex int) error {
+func AddHeader(headers []models.Header, storage models.Storage, collectionIndex int, apiIndex int) error {
 
 	storage.Collections[collectionIndex].Requests[apiIndex].Headers = headers
 	return WriteFile(storage)
 }
-func deleteHeader(selectedHeader models.Header, storage models.Storage, collectionIndex int, apiIndex int) ([]models.Header, error) {
+func DeleteHeader(selectedHeader models.Header, storage models.Storage, collectionIndex int, apiIndex int) ([]models.Header, error) {
 	Headers := storage.Collections[collectionIndex].Requests[apiIndex].Headers
 
 	var newHeaders []models.Header
@@ -199,7 +189,7 @@ func deleteHeader(selectedHeader models.Header, storage models.Storage, collecti
 	return newHeaders, nil
 }
 
-func addBodyField(storage models.Storage, collectionIndex int, apiIndex int, bodyFields []models.BodyField) ([]models.BodyField, error) {
+func AddBodyField(storage models.Storage, collectionIndex int, apiIndex int, bodyFields []models.BodyField) ([]models.BodyField, error) {
 	storage.Collections[collectionIndex].Requests[apiIndex].BodyField = bodyFields
 
 	if err := WriteFile(storage); err != nil {
@@ -209,7 +199,7 @@ func addBodyField(storage models.Storage, collectionIndex int, apiIndex int, bod
 	return bodyFields, nil
 }
 
-func deleteBodyField(selectedBodyField models.BodyField, storage models.Storage, collectionIndex int, apiIndex int) ([]models.BodyField, error) {
+func DeleteBodyField(selectedBodyField models.BodyField, storage models.Storage, collectionIndex int, apiIndex int) ([]models.BodyField, error) {
 	bodyFields := storage.Collections[collectionIndex].Requests[apiIndex].BodyField
 
 	var NewBodyFields []models.BodyField
@@ -227,12 +217,12 @@ func deleteBodyField(selectedBodyField models.BodyField, storage models.Storage,
 	return NewBodyFields, nil
 }
 
-func addQueryParam(queryParams []models.QueryParam, storage models.Storage, collectionIndex int, apiIndex int) error {
+func AddQueryParam(queryParams []models.QueryParam, storage models.Storage, collectionIndex int, apiIndex int) error {
 	storage.Collections[collectionIndex].Requests[apiIndex].QueryParams = queryParams
 	return WriteFile(storage)
 }
 
-func deleteQueryParam(selectedQueryParam models.QueryParam, storage models.Storage, collectionIndex int, apiIndex int) ([]models.QueryParam, error) {
+func DeleteQueryParam(selectedQueryParam models.QueryParam, storage models.Storage, collectionIndex int, apiIndex int) ([]models.QueryParam, error) {
 	QueryParams := storage.Collections[collectionIndex].Requests[apiIndex].QueryParams
 
 	var newQueryParams []models.QueryParam
@@ -251,12 +241,12 @@ func deleteQueryParam(selectedQueryParam models.QueryParam, storage models.Stora
 	return newQueryParams, nil
 }
 
-func addLocalVariable(storage models.Storage, collectionIndex int, localVariables []models.LocalVariable) error {
+func AddLocalVariable(storage models.Storage, collectionIndex int, localVariables []models.LocalVariable) error {
 	storage.Collections[collectionIndex].LocalVariables = localVariables
 	return WriteFile(storage)
 }
 
-func deleteLocalVariable(selectedLocalVariable models.LocalVariable, storage models.Storage, collectionIndex int) ([]models.LocalVariable, error) {
+func DeleteLocalVariable(selectedLocalVariable models.LocalVariable, storage models.Storage, collectionIndex int) ([]models.LocalVariable, error) {
 	LocalVariables := storage.Collections[collectionIndex].LocalVariables
 
 	var newLocalVariables []models.LocalVariable
@@ -289,9 +279,9 @@ func WriteFile(storage models.Storage) error {
 	return nil
 }
 
-type fileChangedMsg models.Storage
+type FileChangedMsg models.Storage
 
-func watchFile(p *tea.Program) (*fsnotify.Watcher, error) {
+func WatchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create watcher: %w", err)
@@ -312,7 +302,7 @@ func watchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 						log.Printf("Watcher: Error reading file: %v", readErr)
 						continue
 					}
-					p.Send(fileChangedMsg(newStorage))
+					p.Send(FileChangedMsg(newStorage))
 				}
 			case err := <-watcher.Errors:
 				if err != nil {
@@ -324,7 +314,7 @@ func watchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 	return watcher, nil
 }
 
-func HandleJson(response ApiResponse) ([]models.Response, error) {
+func HandleJson(response models.ApiResponse) ([]models.Response, error) {
 	var vars []models.Response
 
 	var data map[string]interface{}

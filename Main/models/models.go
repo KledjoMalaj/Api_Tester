@@ -1,5 +1,11 @@
 package models
 
+import (
+	"net/http"
+
+	tea "github.com/charmbracelet/bubbletea"
+)
+
 type Storage struct {
 	Collections []Collection `json:"collections"`
 }
@@ -40,4 +46,35 @@ type Api struct {
 	BodyField   []BodyField  `json:"bodyFields"`
 	QueryParams []QueryParam `json:"queryParams"`
 	Responses   []Response   `json:"responses"`
+}
+
+type ApiResponse struct {
+	StatusCode     int
+	Status         string
+	Body           string
+	Headers        http.Header
+	RequestHeaders []Header
+	ContentType    string
+	ContentLength  int64
+}
+
+type ErrorMsg struct {
+	Message string
+}
+
+type ApiResponseMsg struct {
+	Response ApiResponse
+}
+
+func ShowErrorCommand(message string) tea.Cmd {
+	return func() tea.Msg {
+		return ErrorMsg{Message: message}
+	}
+}
+
+type TuiModel struct {
+	SelectedApi        Api
+	SelectedCollection Collection
+	LocalVariables     []LocalVariable
+	ApiResponse        ApiResponse
 }

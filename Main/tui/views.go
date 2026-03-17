@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func (m model) View() string {
+func (m Model) View() string {
 	switch m.CurrentPage {
 	case HomePage:
 		return Homepage(m)
@@ -33,7 +33,7 @@ func (m model) View() string {
 	return ""
 }
 
-func Homepage(m model) string {
+func Homepage(m Model) string {
 	styleInput := inputStyle(m.termWidth)
 	style3 := OptionsStyle(m.termWidth)
 	style2 := HomePageStyle2(m.termWidth, m.termHeight)
@@ -102,7 +102,7 @@ func Homepage(m model) string {
 	return b.String()
 }
 
-func Collectionpage(termWidth, termHeight int, m model) string {
+func Collectionpage(termWidth, termHeight int, m Model) string {
 	style1 := TitleStyle(termWidth)
 	style2 := HomePageStyle2(termWidth, termHeight)
 	style3 := OptionsStyle(termWidth)
@@ -173,7 +173,7 @@ func Collectionpage(termWidth, termHeight int, m model) string {
 	return b.String()
 }
 
-func ApipageWithViewport(m model) string {
+func ApipageWithViewport(m Model) string {
 	if !m.viewportReady {
 		return "Loading..."
 	}
@@ -182,7 +182,7 @@ func ApipageWithViewport(m model) string {
 	return m.apiViewport.View() + helpText
 }
 
-func BuildApiPageContent(m model, termWidth int) string {
+func BuildApiPageContent(m Model, termWidth int) string {
 	style1 := TitleStyle(termWidth)
 	style3 := ResponseStyle(termWidth)
 	style2 := statusLine(termWidth)
@@ -191,7 +191,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	var b strings.Builder
 	SelectedApi := m.SelectedApi
 
-	Response := m.apiResponse
+	Response := m.ApiResponse
 
 	statusStyle := StatusOKStyle
 	if Response.StatusCode >= 400 {
@@ -240,7 +240,7 @@ func BuildApiPageContent(m model, termWidth int) string {
 	return b.String()
 }
 
-func ReqPage(m model) string {
+func ReqPage(m Model) string {
 	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
@@ -366,7 +366,7 @@ func FormatJSON(body string, keyStyle lipgloss.Style, valueStyle lipgloss.Style)
 	return styled
 }
 
-func HeadersPageView(m model) string {
+func HeadersPageView(m Model) string {
 	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
@@ -436,7 +436,7 @@ func HeadersPageView(m model) string {
 	return b.String()
 }
 
-func QueryParamsPageView(m model) string {
+func QueryParamsPageView(m Model) string {
 	style1 := TitleStyle(m.termWidth)
 	style2 := OptionsStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
@@ -501,14 +501,14 @@ func QueryParamsPageView(m model) string {
 	return b.String()
 }
 
-func loadingView(m model) string {
+func loadingView(m Model) string {
 	style1 := loadingStyle(m.termWidth, m.termHeight)
 	var b strings.Builder
 	b.WriteString(style1.Render("LOADING..."))
 	return b.String()
 }
 
-func ResponsePageView(m model) string {
+func ResponsePageView(m Model) string {
 	style1 := OptionsStyle(m.termWidth - 4)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)
 	titleStyle := TitleStyle(m.termWidth)
@@ -586,7 +586,7 @@ func ResponsePageView(m model) string {
 	return b.String()
 }
 
-func VariablesPageView(m model) string {
+func VariablesPageView(m Model) string {
 	style1 := OptionsStyle(m.termWidth - 4)
 	style2 := TitleStyle(m.termWidth)
 	style3 := HomePageStyle2(m.termWidth, m.termHeight)

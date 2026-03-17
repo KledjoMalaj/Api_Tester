@@ -1,23 +1,25 @@
-package main
+package tui
 
 import (
 	"GoTuiFrontend/models"
+	"GoTuiFrontend/operations"
+
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
-	case errorMsg:
-		m.errorMessage = msg.message
+	case models.ErrorMsg:
+		m.errorMessage = msg.Message
 		m.hasError = true
 		return m, nil
 
-	case apiResponseMsg:
-		m.apiResponse = msg.response
+	case models.ApiResponseMsg:
+		m.ApiResponse = msg.Response
 		m.CurrentPage = ApiPage
 		if m.viewportReady {
 			m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
@@ -25,7 +27,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case fileChangedMsg:
+	case operations.FileChangedMsg:
 		m.storage = models.Storage(msg)
 		m.Collections = m.storage.Collections
 
@@ -102,7 +104,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateHomePage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -115,8 +117,8 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.editingCollection.Blur()
 				m.editing = false
 			case "enter":
-				if err := editCollection(m.storage, m.SelectedCollection, m.editingCollection.Value()); err != nil {
-					return m, showErrorCommand("Failed to edit Collection: " + err.Error())
+				if err := operations.EditCollection(m.storage, m.SelectedCollection, m.editingCollection.Value()); err != nil {
+					return m, models.ShowErrorCommand("Failed to edit Collection: " + err.Error())
 				}
 				m.editingApi.Blur()
 				m.editing = false
@@ -133,8 +135,8 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 
-				if err := AddCollection(m.storage, m.Collections, m.NewCollectionInput.Value()); err != nil {
-					return m, showErrorCommand("Failed to add collection: " + err.Error())
+				if err := operations.AddCollection(m.storage, m.Collections, m.NewCollectionInput.Value()); err != nil {
+					return m, models.ShowErrorCommand("Failed to add collection: " + err.Error())
 				}
 				m.NewCollectionInput.SetValue("")
 				m.NewCollectionInput.Blur()
@@ -182,9 +184,9 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "d":
 			if len(m.Collections) > 0 {
 				selectedCollection := m.storage.Collections[m.pointer]
-				newCollections, err := deleteCollection(selectedCollection, m.storage)
+				newCollections, err := operations.DeleteCollection(selectedCollection, m.storage)
 				if err != nil {
-					return m, showErrorCommand("Failed to delete collection: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to delete collection: " + err.Error())
 				}
 				m.Collections = newCollections
 				if m.pointer >= len(m.Collections) && m.pointer > 0 {
@@ -211,7 +213,7 @@ func UpdateHomePage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateCollectionPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -219,8 +221,8 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		if m.editing {
 			switch msg.String() {
 			case "enter":
-				if err := editApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingApi.Value()); err != nil {
-					return m, showErrorCommand("Failed to edit api: " + err.Error())
+				if err := operations.EditApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingApi.Value()); err != nil {
+					return m, models.ShowErrorCommand("Failed to edit api: " + err.Error())
 				}
 				m.editingApi.Blur()
 				m.editing = false
@@ -240,8 +242,8 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 
-				if err := AddApi(m.storage, m.collectionIndex, m.Apis, m.NewApiInput.Value()); err != nil {
-					return m, showErrorCommand("Failed to add api: " + err.Error())
+				if err := operations.AddApi(m.storage, m.collectionIndex, m.Apis, m.NewApiInput.Value()); err != nil {
+					return m, models.ShowErrorCommand("Failed to add api: " + err.Error())
 				}
 				m.NewApiInput.SetValue("")
 				m.NewApiInput.Blur()
@@ -272,7 +274,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "enter":
 			m.SelectedApi = m.Apis[m.pointer]
 
-			processedApi := processRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)
+			processedApi := operations.ProcessRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)
 
 			switch processedApi.Method {
 			case "POST", "DELETE", "PUT", "PATCH":
@@ -283,11 +285,16 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.pointer = 0
 
 			case "GET":
+				TuiModel := models.TuiModel{
+					SelectedApi:        m.SelectedApi,
+					SelectedCollection: m.SelectedCollection,
+					LocalVariables:     m.LocalVariables,
+				}
 				m.CurrentPage = LoadingPage
 				m.ApiIndex = m.pointer
-				m.apiResponse = FetchData(m.SelectedApi, m)
-				m.Responses, _ = HandleJson(m.apiResponse)
-				return m, fetchApiCommand(m.SelectedApi, m)
+				m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				return m, operations.FetchApiCommand(m.SelectedApi, TuiModel)
 			}
 
 		case ":":
@@ -297,9 +304,9 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "d":
 			if len(m.Apis) > 0 {
 				selectedApi := m.Apis[m.pointer]
-				newApis, err := deleteApi(selectedApi, m.storage, m.collectionIndex)
+				newApis, err := operations.DeleteApi(selectedApi, m.storage, m.collectionIndex)
 				if err != nil {
-					return m, showErrorCommand("Failed to delete api: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to delete api: " + err.Error())
 				}
 				m.Apis = newApis
 				if m.pointer >= len(m.Apis) && m.pointer > 0 {
@@ -350,7 +357,7 @@ func UpdateCollectionPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, cmd
 }
 
-func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateApiPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -368,12 +375,12 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 
 			case "enter":
-				if err := editApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingCurrentApi.Value()); err != nil {
-					return m, showErrorCommand("Failed to edit api: " + err.Error())
+				if err := operations.EditApi(m.storage, m.collectionIndex, m.SelectedApi, m.editingCurrentApi.Value()); err != nil {
+					return m, models.ShowErrorCommand("Failed to edit api: " + err.Error())
 				}
 
 				// Update local state
-				m.storage, _ = ReadFile()
+				m.storage, _ = operations.ReadFile()
 				m.Collections = m.storage.Collections
 				m.SelectedCollection = m.Collections[m.collectionIndex]
 				m.Apis = m.SelectedCollection.Requests
@@ -440,7 +447,7 @@ func UpdateApiPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, cmd
 }
 
-func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateReqPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -453,9 +460,9 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				m.BodyFields[m.pointer].Value = m.editingBodyFields.Value()
-				newBodyFields, err := addBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
+				newBodyFields, err := operations.AddBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
 				if err != nil {
-					return m, showErrorCommand("Failed to edit body field: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to edit body field: " + err.Error())
 				}
 				m.BodyFields = newBodyFields
 				m.editing = false
@@ -477,9 +484,9 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Value: "",
 				}
 				m.BodyFields = append(m.BodyFields, newBodyFiled)
-				newBodyFields, err := addBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
+				newBodyFields, err := operations.AddBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
 				if err != nil {
-					return m, showErrorCommand("Failed to add body field: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to add body field: " + err.Error())
 				}
 				m.BodyFields = newBodyFields
 				m.newBodyFieldInput.SetValue("")
@@ -496,9 +503,9 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "enter":
 				newBodyFieldValue := m.bodyFiledValueInput.Value()
 				m.BodyFields[m.pointer].Value = newBodyFieldValue
-				_, err := addBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
+				_, err := operations.AddBodyField(m.storage, m.collectionIndex, m.ApiIndex, m.BodyFields)
 				if err != nil {
-					return m, showErrorCommand("Failed to add body field value: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to add body field value: " + err.Error())
 				}
 				m.bodyFiledValueInput.SetValue("")
 				m.bodyFiledValueInput.Blur()
@@ -509,11 +516,17 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 
 		switch msg.String() {
 		case "enter":
+			TuiModel := models.TuiModel{
+				SelectedApi:        m.SelectedApi,
+				SelectedCollection: m.SelectedCollection,
+				LocalVariables:     m.LocalVariables,
+			}
+
 			m.pageScrollOffset = 0
 			m.CurrentPage = LoadingPage
-			m.apiResponse = PostAPiFunc(m)
-			m.Responses, _ = HandleJson(m.apiResponse)
-			return m, postApiCommand(m)
+			m.ApiResponse = operations.PostAPiFunc(TuiModel)
+			m.Responses, _ = operations.HandleJson(m.ApiResponse)
+			return m, operations.PostApiCommand(TuiModel)
 
 		case "v":
 			m.bodyFiledValueInput.Focus()
@@ -542,9 +555,9 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "d":
 			if len(m.BodyFields) > 0 {
 				selectedBodyField := m.BodyFields[m.pointer]
-				newBodyFields, err := deleteBodyField(selectedBodyField, m.storage, m.collectionIndex, m.ApiIndex)
+				newBodyFields, err := operations.DeleteBodyField(selectedBodyField, m.storage, m.collectionIndex, m.ApiIndex)
 				if err != nil {
-					return m, showErrorCommand("Failed to delete body field: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to delete body field: " + err.Error())
 				}
 
 				m.BodyFields = newBodyFields
@@ -572,7 +585,7 @@ func UpdateReqPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, cmd
 }
 
-func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateHeadersPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -585,8 +598,8 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				m.Headers[m.pointer].Value = m.editingHeader.Value()
-				if err := addHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
-					return m, showErrorCommand("Failed to add new header: " + err.Error())
+				if err := operations.AddHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
+					return m, models.ShowErrorCommand("Failed to add new header: " + err.Error())
 				}
 				m.editing = false
 				m.editingHeader.Blur()
@@ -607,8 +620,8 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Key: headerKey,
 				}
 				m.Headers = append(m.Headers, newHeder)
-				if err := addHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
-					return m, showErrorCommand("Failed to add Header: " + err.Error())
+				if err := operations.AddHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
+					return m, models.ShowErrorCommand("Failed to add Header: " + err.Error())
 				}
 				m.addHeaderKey.SetValue("")
 				m.addHeaderKey.Blur()
@@ -624,8 +637,8 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				m.Headers[m.pointer].Value = m.addHeaderValue.Value()
-				if err := addHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
-					return m, showErrorCommand("Failed to add header value: " + err.Error())
+				if err := operations.AddHeader(m.Headers, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
+					return m, models.ShowErrorCommand("Failed to add header value: " + err.Error())
 				}
 				m.addHeaderValue.SetValue("")
 				m.addHeaderValue.Blur()
@@ -652,9 +665,9 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "d":
 			if len(m.Headers) > 0 {
 				selectedHeader := m.Headers[m.pointer]
-				newHeaders, err := deleteHeader(selectedHeader, m.storage, m.collectionIndex, m.ApiIndex)
+				newHeaders, err := operations.DeleteHeader(selectedHeader, m.storage, m.collectionIndex, m.ApiIndex)
 				if err != nil {
-					return m, showErrorCommand("Failed to delete header: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to delete header: " + err.Error())
 				}
 				m.Headers = newHeaders
 				if m.pointer >= len(m.Headers) && m.pointer > 0 {
@@ -699,7 +712,7 @@ func UpdateHeadersPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateQueryParamsPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -712,8 +725,8 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				m.QueryParams[m.pointer].Value = m.editingQueryParams.Value()
-				if err := addQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
-					return m, showErrorCommand("Failed to edit query params: " + err.Error())
+				if err := operations.AddQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
+					return m, models.ShowErrorCommand("Failed to edit query params: " + err.Error())
 				}
 				m.editing = false
 				m.editingQueryParams.Blur()
@@ -734,8 +747,8 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Value: "",
 				}
 				m.QueryParams = append(m.QueryParams, newQueryParam)
-				if err := addQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
-					return m, showErrorCommand("Failed to add query param: " + err.Error())
+				if err := operations.AddQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
+					return m, models.ShowErrorCommand("Failed to add query param: " + err.Error())
 				}
 				m.addQueryParamsKey.SetValue("")
 				m.addQueryParamsKey.Blur()
@@ -751,8 +764,8 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.addQueryParamsValue.Blur()
 			case "enter":
 				m.QueryParams[m.pointer].Value = m.addQueryParamsValue.Value()
-				if err := addQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
-					return m, showErrorCommand("Failed to add query param value: " + err.Error())
+				if err := operations.AddQueryParam(m.QueryParams, m.storage, m.collectionIndex, m.ApiIndex); err != nil {
+					return m, models.ShowErrorCommand("Failed to add query param value: " + err.Error())
 				}
 				m.addQueryParamsValue.SetValue("")
 				m.addQueryParamsValue.Blur()
@@ -796,9 +809,9 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "d":
 			if len(m.QueryParams) > 0 {
 				selectedQueryParam := m.QueryParams[m.pointer]
-				newQueryParams, err := deleteQueryParam(selectedQueryParam, m.storage, m.collectionIndex, m.ApiIndex)
+				newQueryParams, err := operations.DeleteQueryParam(selectedQueryParam, m.storage, m.collectionIndex, m.ApiIndex)
 				if err != nil {
-					return m, showErrorCommand("Failed to delete query param: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to delete query param: " + err.Error())
 				}
 				m.QueryParams = newQueryParams
 				if m.pointer >= len(m.QueryParams) && m.pointer > 0 {
@@ -817,7 +830,7 @@ func UpdateQueryParamsPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateLoadingPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -828,7 +841,7 @@ func UpdateLoadingPage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateResponsePage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 
@@ -861,9 +874,9 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 			case "d":
 				if len(m.LocalVariables) > 0 {
 					selectedVariable := m.LocalVariables[m.pointer]
-					newLocalVariables, err := deleteLocalVariable(selectedVariable, m.storage, m.collectionIndex)
+					newLocalVariables, err := operations.DeleteLocalVariable(selectedVariable, m.storage, m.collectionIndex)
 					if err != nil {
-						return m, showErrorCommand("Failed to delete Local Variable : " + err.Error())
+						return m, models.ShowErrorCommand("Failed to delete Local Variable : " + err.Error())
 					}
 					m.LocalVariables = newLocalVariables
 					if m.pointer >= len(m.LocalVariables) && m.pointer > 0 {
@@ -903,9 +916,9 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Value: selectedResponse.Value,
 				}
 				m.LocalVariables = append(m.LocalVariables, newLocalVariable)
-				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
+				err := operations.AddLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
 				if err != nil {
-					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to add local Variable: " + err.Error())
 				}
 			case "v":
 				m.VariablesFocus = true
@@ -915,7 +928,7 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 				selectedResponse := m.Responses[m.pointer]
 				err := clipboard.WriteAll(selectedResponse.Value)
 				if err != nil {
-					return m, showErrorCommand("Failed to Copy Response: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to Copy Response: " + err.Error())
 				}
 			}
 		}
@@ -923,7 +936,7 @@ func UpdateResponsePage(m model, msg tea.Msg) (model, tea.Cmd) {
 	return m, nil
 }
 
-func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
+func UpdateVariablesPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -935,8 +948,8 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				return m, nil
 			case "enter":
 				m.LocalVariables[m.pointer].Value = m.editingLocalVariables.Value()
-				if err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables); err != nil {
-					return m, showErrorCommand("Failed to edit Local Variable : " + err.Error())
+				if err := operations.AddLocalVariable(m.storage, m.collectionIndex, m.LocalVariables); err != nil {
+					return m, models.ShowErrorCommand("Failed to edit Local Variable : " + err.Error())
 				}
 				m.editing = false
 				m.editingLocalVariables.Blur()
@@ -951,9 +964,9 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 				m.addVariableValue.SetValue("")
 			case "enter":
 				m.LocalVariables[m.pointer].Value = m.addVariableValue.Value()
-				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
+				err := operations.AddLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
 				if err != nil {
-					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to add local Variable: " + err.Error())
 				}
 				m.addVariableValue.Blur()
 				m.addVariableValue.SetValue("")
@@ -972,9 +985,9 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 					Value: "",
 				}
 				m.LocalVariables = append(m.LocalVariables, NewResponse)
-				err := addLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
+				err := operations.AddLocalVariable(m.storage, m.collectionIndex, m.LocalVariables)
 				if err != nil {
-					return m, showErrorCommand("Failed to add local Variable: " + err.Error())
+					return m, models.ShowErrorCommand("Failed to add local Variable: " + err.Error())
 				}
 				m.addVariableKey.Blur()
 				m.addVariableKey.SetValue("")
@@ -1006,9 +1019,9 @@ func UpdateVariablesPage(m model, msg tea.Msg) (model, tea.Cmd) {
 		case "d":
 			if len(m.LocalVariables) > 0 {
 				selectedVariable := m.LocalVariables[m.pointer]
-				newLocalVariables, err := deleteLocalVariable(selectedVariable, m.storage, m.collectionIndex)
+				newLocalVariables, err := operations.DeleteLocalVariable(selectedVariable, m.storage, m.collectionIndex)
 				if err != nil {
-					return m, showErrorCommand("Failed to delete Local Variable : " + err.Error())
+					return m, models.ShowErrorCommand("Failed to delete Local Variable : " + err.Error())
 				}
 				m.LocalVariables = newLocalVariables
 				if m.pointer >= len(m.LocalVariables) && m.pointer > 0 {

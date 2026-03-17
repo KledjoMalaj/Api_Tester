@@ -1,4 +1,4 @@
-package main
+package operations
 
 import (
 	"GoTuiFrontend/models"
@@ -11,18 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ApiResponse struct {
-	StatusCode     int
-	Status         string
-	Body           string
-	Headers        http.Header
-	RequestHeaders []models.Header
-	ContentType    string
-	ContentLength  int64
-}
-
-func FetchData(SelectedApi models.Api, m model) ApiResponse {
-	processedApi := processRequest(SelectedApi, m.SelectedCollection.LocalVariables)
+func FetchData(SelectedApi models.Api, m models.TuiModel) models.ApiResponse {
+	processedApi := ProcessRequest(SelectedApi, m.SelectedCollection.LocalVariables)
 
 	headers := processedApi.Headers
 	api := buildURL(processedApi, m)
@@ -34,7 +24,7 @@ func FetchData(SelectedApi models.Api, m model) ApiResponse {
 
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		return ApiResponse{StatusCode: 0, Status: err.Error()}
+		return models.ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 
 	for i := 0; i < len(headers); i++ {
@@ -44,16 +34,16 @@ func FetchData(SelectedApi models.Api, m model) ApiResponse {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ApiResponse{StatusCode: 0, Status: err.Error()}
+		return models.ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
+		return models.ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
 	}
 
-	m.apiResponse = ApiResponse{
+	m.ApiResponse = models.ApiResponse{
 		StatusCode:     resp.StatusCode,
 		Status:         resp.Status,
 		Body:           string(bodyBytes),
@@ -63,12 +53,12 @@ func FetchData(SelectedApi models.Api, m model) ApiResponse {
 		ContentLength:  resp.ContentLength,
 	}
 
-	return m.apiResponse
+	return m.ApiResponse
 
 }
 
-func PostAPiFunc(m model) ApiResponse {
-	SelectedApi := processRequest(m.SelectedApi, m.LocalVariables)
+func PostAPiFunc(m models.TuiModel) models.ApiResponse {
+	SelectedApi := ProcessRequest(m.SelectedApi, m.LocalVariables)
 
 	headers := m.SelectedApi.Headers
 
@@ -84,7 +74,7 @@ func PostAPiFunc(m model) ApiResponse {
 
 	req, err := http.NewRequest(method, url, bodyReader)
 	if err != nil {
-		return ApiResponse{StatusCode: 0, Status: err.Error()}
+		return models.ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 
 	newHeader := models.Header{
@@ -102,17 +92,17 @@ func PostAPiFunc(m model) ApiResponse {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ApiResponse{StatusCode: 0, Status: err.Error()}
+		return models.ApiResponse{StatusCode: 0, Status: err.Error()}
 	}
 	defer resp.Body.Close()
 
 	// Read response body
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
+		return models.ApiResponse{StatusCode: 0, Status: "Failed to read Response : " + err.Error()}
 	}
 
-	m.apiResponse = ApiResponse{
+	m.ApiResponse = models.ApiResponse{
 		StatusCode:     resp.StatusCode,
 		Status:         resp.Status,
 		Body:           string(bodyBytes),
@@ -122,9 +112,9 @@ func PostAPiFunc(m model) ApiResponse {
 		ContentLength:  resp.ContentLength,
 	}
 
-	return m.apiResponse
+	return m.ApiResponse
 }
-func parseData(selectedApi models.Api, m model) string {
+func parseData(selectedApi models.Api, m models.TuiModel) string {
 	if len(selectedApi.BodyField) == 0 {
 		return "{}"
 	}
@@ -174,24 +164,21 @@ func formatJSONValue(value string) string {
 	return fmt.Sprintf("\"%s\"", value)
 }
 
-type apiResponseMsg struct {
-	response ApiResponse
-}
-
-func fetchApiCommand(api models.Api, m model) tea.Cmd {
+func FetchApiCommand(api models.Api, m models.TuiModel) tea.Cmd {
 	return func() tea.Msg {
 		response := FetchData(api, m)
-		return apiResponseMsg{response: response}
+		return models.ApiResponseMsg{Response: response}
 	}
 }
 
-func postApiCommand(m model) tea.Cmd {
+func PostApiCommand(m models.TuiModel) tea.Cmd {
 	return func() tea.Msg {
 		response := PostAPiFunc(m)
-		return apiResponseMsg{response: response}
+		return models.ApiResponseMsg{Response: response}
 	}
 }
-func buildURL(api models.Api, m model) string {
+
+func buildURL(api models.Api, m models.TuiModel) string {
 	if len(api.QueryParams) == 0 {
 		return api.Url
 	}
@@ -204,7 +191,7 @@ func buildURL(api models.Api, m model) string {
 	return api.Url + "?" + strings.Join(params, "&")
 }
 
-func processRequest(api models.Api, variables []models.LocalVariable) models.Api {
+func ProcessRequest(api models.Api, variables []models.LocalVariable) models.Api {
 	processed := api
 	processed.Url = replaceVariables(api.Url, variables)
 	return processed
