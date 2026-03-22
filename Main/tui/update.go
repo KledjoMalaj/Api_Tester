@@ -1054,9 +1054,36 @@ func UpdateVariablesPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.responseComponent {
+			switch msg.String() {
+			case "esc":
+				m.responseComponent = false
+			}
+			return m, nil
+		}
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = HomePage
+		case "up", "k":
+			if m.pointer > 0 {
+				m.pointer--
+			}
+		case "down", "j":
+			if m.pointer < len(m.SelectedCollection.Requests)-1 {
+				m.pointer++
+			}
+		case "enter":
+			m.responseComponent = true
+			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
+
+			TuiModel := models.TuiModel{
+				SelectedApi:        m.SelectedApi,
+				SelectedCollection: m.SelectedCollection,
+				LocalVariables:     m.LocalVariables,
+			}
+			m.ApiIndex = m.pointer
+			m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
+			m.Responses, _ = operations.HandleJson(m.ApiResponse)
 		}
 	}
 	return m, nil

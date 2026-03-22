@@ -656,5 +656,44 @@ func DashBoardView(m Model) string {
 	var b strings.Builder
 	b.WriteString(TitleStyle(m.termWidth).Render("-- DashBoard --"))
 	b.WriteString("\n")
+
+	requests := m.SelectedCollection.Requests
+	var items []string
+
+	if len(requests) == 0 {
+		line := "No request"
+		items = append(items, line)
+	} else {
+		for i := range requests {
+			var line string
+			if m.pointer == i {
+				line = style4.Render("> ") + style5.Render(requests[i].Method+" : "+requests[i].Url+"\n")
+			} else {
+				line = style4.Render("   " + requests[i].Method + " : " + requests[i].Url + "\n")
+			}
+			items = append(items, line)
+		}
+	}
+
+	res := DashBoardResponse(m)
+
+	var leftBox string
+
+	if m.responseComponent {
+		leftBox = OptionsStyle(m.termWidth/3 - 10).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	} else {
+		leftBox = OptionsStyle(m.termWidth).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	}
+
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, res)
+
+	b.WriteString(layout)
+
 	return b.String()
+}
+
+func DashBoardResponse(m Model) string {
+	termWidth := m.termWidth - (m.termWidth/3 - 10)
+	res := BuildApiPageContent(m, termWidth-2)
+	return DashBoardResponseStyle().Render(res)
 }

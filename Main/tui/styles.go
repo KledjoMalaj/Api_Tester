@@ -126,7 +126,7 @@ func errorStyle(termWidth int) lipgloss.Style {
 		Align(lipgloss.Center)
 }
 
-func CopytextStyle() lipgloss.Style {
+func DashBoardResponseStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("4"))
+		BorderStyle(lipgloss.RoundedBorder())
 }

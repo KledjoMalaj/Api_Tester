@@ -77,6 +77,8 @@ type Model struct {
 	variableScrollOffset int
 
 	pageScrollOffset int
+
+	responseComponent bool
 }
 
 func NewModel(storage models.Storage) Model {
@@ -141,6 +143,7 @@ func NewModel(storage models.Storage) Model {
 		addQueryParamsValue: QueryParamsValue,
 		addVariableKey:      VariableKey,
 		addVariableValue:    VariableValue,
+		responseComponent:   false,
 	}
 }
 
