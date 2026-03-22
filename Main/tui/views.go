@@ -205,20 +205,24 @@ func BuildApiPageContent(m Model, termWidth int) string {
 	resp.WriteString("Status: " + statusStyle.Render(Response.Status) + "\n")
 	resp.WriteString(fmt.Sprintf("Status Code: %s\n", statusStyle.Render(fmt.Sprintf("%d \n", Response.StatusCode))))
 	resp.WriteString(style2.Render(" "))
-	resp.WriteString("Content Type: " + Response.ContentType + "\n")
-	resp.WriteString(fmt.Sprintf("Content Length: %d\n", Response.ContentLength))
 
-	resp.WriteString("\nRequestHeaders :\n")
-	for i := 0; i < len(Response.RequestHeaders); i++ {
-		resp.WriteString(" " + Response.RequestHeaders[i].Key + " : " + Response.RequestHeaders[i].Value + "\n")
+	if !m.responseComponent {
+		resp.WriteString("Content Type: " + Response.ContentType + "\n")
+		resp.WriteString(fmt.Sprintf("Content Length: %d\n", Response.ContentLength))
+
+		resp.WriteString("\nRequestHeaders :\n")
+		for i := 0; i < len(Response.RequestHeaders); i++ {
+			resp.WriteString(" " + Response.RequestHeaders[i].Key + " : " + Response.RequestHeaders[i].Value + "\n")
+		}
+
+		resp.WriteString("\nHeaders :\n")
+		for k, v := range Response.Headers {
+			resp.WriteString(fmt.Sprintf("  %s : %s\n", k, strings.Join(v, ", ")))
+		}
+
+		resp.WriteString("\n" + style2.Render(" "))
+
 	}
-
-	resp.WriteString("\nHeaders :\n")
-	for k, v := range Response.Headers {
-		resp.WriteString(fmt.Sprintf("  %s : %s\n", k, strings.Join(v, ", ")))
-	}
-
-	resp.WriteString("\n" + style2.Render(" "))
 
 	formattedBody := FormatJSON(Response.Body, bodyElementStyle, bodyElementStyle2)
 	resp.WriteString("\nBody:\n" + formattedBody + "\n")
@@ -654,46 +658,55 @@ func VariablesPageView(m Model) string {
 
 func DashBoardView(m Model) string {
 	var b strings.Builder
-	b.WriteString(TitleStyle(m.termWidth).Render("-- DashBoard --"))
-	b.WriteString("\n")
+
+	title := TitleStyle(m.termWidth).Render("-- DashBoard --")
+
+	height := m.termHeight - 3
 
 	requests := m.SelectedCollection.Requests
 	var items []string
 
 	if len(requests) == 0 {
-		line := "No request"
-		items = append(items, line)
+		items = append(items, "No request")
 	} else {
-		for i := range requests {
-			var line string
+		maxItems := height
+		if len(requests) < maxItems {
+			maxItems = len(requests)
+		}
+
+		for i := 0; i < maxItems; i++ {
 			if m.pointer == i {
-				line = style4.Render("> ") + style5.Render(requests[i].Method+" : "+requests[i].Url+"\n")
+				items = append(items, style4.Render("> ")+style5.Render(requests[i].Method+" : "+requests[i].Url)+"\n")
 			} else {
-				line = style4.Render("   " + requests[i].Method + " : " + requests[i].Url + "\n")
+				items = append(items, style4.Render("   "+requests[i].Method+" : "+requests[i].Url)+"\n")
 			}
-			items = append(items, line)
 		}
 	}
 
-	res := DashBoardResponse(m)
-
 	var leftBox string
+	var rightBox string
 
 	if m.responseComponent {
-		leftBox = OptionsStyle(m.termWidth/3 - 10).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
-	} else {
-		leftBox = OptionsStyle(m.termWidth).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+		leftWidth := m.termWidth/3 - 10
+		rightWidth := m.termWidth - leftWidth - 2
+
+		leftBox = OptionsStyle(leftWidth).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+
+		res := BuildApiPageContent(m, rightWidth)
+
+		rightBox = DashBoardResponseStyle().Width(rightWidth).Height(height - 20).Render(res)
+
+		layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
+		full := lipgloss.JoinVertical(lipgloss.Top, title, layout)
+
+		b.WriteString(full)
+		return b.String()
 	}
 
-	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, res)
+	leftBox = OptionsStyle(m.termWidth).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
 
-	b.WriteString(layout)
+	full := lipgloss.JoinVertical(lipgloss.Top, title, leftBox)
 
+	b.WriteString(full)
 	return b.String()
-}
-
-func DashBoardResponse(m Model) string {
-	termWidth := m.termWidth - (m.termWidth/3 - 10)
-	res := BuildApiPageContent(m, termWidth-2)
-	return DashBoardResponseStyle().Render(res)
 }
