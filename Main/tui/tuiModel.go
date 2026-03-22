@@ -20,6 +20,7 @@ const (
 	LoadingPage
 	ResponsePage
 	VariablesPage
+	DashBoard
 )
 
 type Model struct {

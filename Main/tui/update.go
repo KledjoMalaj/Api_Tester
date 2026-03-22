@@ -98,6 +98,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case VariablesPage:
 			m, cmd := UpdateVariablesPage(m, msg)
 			return m, cmd
+		case DashBoard:
+			m, cmd := UpdateDashBoard(m, msg)
+			return m, cmd
 		}
 	}
 
@@ -176,6 +179,11 @@ func UpdateHomePage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			m.collectionIndex = m.pointer
 			m.pointer = 0
 			m.pageScrollOffset = 0
+
+		case "t":
+			m.CurrentPage = DashBoard
+			m.SelectedCollection = m.storage.Collections[m.pointer]
+			m.pointer = 0
 
 		case ":":
 			m.NewCollectionInput.Focus()
@@ -1038,6 +1046,17 @@ func UpdateVariablesPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			m.editingLocalVariables = textinput.New()
 			m.editingLocalVariables.SetValue(value)
 			m.editingLocalVariables.Focus()
+		}
+	}
+	return m, nil
+}
+
+func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = HomePage
 		}
 	}
 	return m, nil

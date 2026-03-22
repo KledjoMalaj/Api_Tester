@@ -29,6 +29,8 @@ func (m Model) View() string {
 		return ResponsePageView(m)
 	case VariablesPage:
 		return VariablesPageView(m)
+	case DashBoard:
+		return DashBoardView(m)
 	}
 	return ""
 }
@@ -647,5 +649,12 @@ func VariablesPageView(m Model) string {
 	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, strings.Repeat("\n", space), rightBox)
 
 	b.WriteString(layout)
+	return b.String()
+}
+
+func DashBoardView(m Model) string {
+	var b strings.Builder
+	b.WriteString(TitleStyle(m.termWidth).Render("-- DashBoard --"))
+	b.WriteString("\n")
 	return b.String()
 }
