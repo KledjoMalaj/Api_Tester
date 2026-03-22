@@ -541,8 +541,12 @@ func UpdateReqPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 		case ":":
 			m.newBodyFieldInput.Focus()
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pageScrollOffset = 0
+			if m.reqPageComponent {
+				m.reqPageComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pageScrollOffset = 0
+			}
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
@@ -1061,6 +1065,27 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			}
 			return m, nil
 		}
+		if m.reqPageComponent {
+			switch msg.String() {
+			// need to fix all the update functions so i can use them in the dashboard
+			// propably the whole app will change , this is a test so idc
+
+			case "enter":
+				TuiModel := models.TuiModel{
+					SelectedApi:        m.SelectedApi,
+					SelectedCollection: m.SelectedCollection,
+					LocalVariables:     m.LocalVariables,
+				}
+
+				m.pageScrollOffset = 0
+				m.ApiResponse = operations.PostAPiFunc(TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				m.reqPageComponent = false
+				m.responseComponent = true
+			}
+			return UpdateReqPage(m, msg)
+		}
+
 		switch msg.String() {
 		case "esc":
 			m.CurrentPage = HomePage
@@ -1073,17 +1098,29 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				m.pointer++
 			}
 		case "enter":
-			m.responseComponent = true
 			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
 
-			TuiModel := models.TuiModel{
-				SelectedApi:        m.SelectedApi,
-				SelectedCollection: m.SelectedCollection,
-				LocalVariables:     m.LocalVariables,
+			processedApi := operations.ProcessRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)
+
+			switch processedApi.Method {
+			case "POST", "DELETE", "PUT", "PATCH":
+				m.SelectedApi = processedApi
+				m.BodyFields = processedApi.BodyField
+				m.ApiIndex = m.pointer
+				m.reqPageComponent = true
+
+			case "GET":
+				TuiModel := models.TuiModel{
+					SelectedApi:        m.SelectedApi,
+					SelectedCollection: m.SelectedCollection,
+					LocalVariables:     m.LocalVariables,
+				}
+				m.responseComponent = true
+				m.ApiIndex = m.pointer
+				m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				return m, nil
 			}
-			m.ApiIndex = m.pointer
-			m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
-			m.Responses, _ = operations.HandleJson(m.ApiResponse)
 		}
 	}
 	return m, nil

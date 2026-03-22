@@ -18,7 +18,7 @@ func (m Model) View() string {
 	case ApiPage:
 		return ApipageWithViewport(m)
 	case RequestPage:
-		return ReqPage(m)
+		return ReqPage(m, m.termWidth)
 	case HeadersPage:
 		return HeadersPageView(m)
 	case QueryParamsPage:
@@ -246,11 +246,11 @@ func BuildApiPageContent(m Model, termWidth int) string {
 	return b.String()
 }
 
-func ReqPage(m Model) string {
-	style1 := TitleStyle(m.termWidth)
-	style2 := OptionsStyle(m.termWidth)
-	style3 := HomePageStyle2(m.termWidth, m.termHeight)
-	styleInput := inputStyle(m.termWidth)
+func ReqPage(m Model, termWidth int) string {
+	style1 := TitleStyle(termWidth)
+	style2 := OptionsStyle(termWidth)
+	style3 := HomePageStyle2(termWidth, m.termHeight)
+	styleInput := inputStyle(termWidth)
 
 	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
 
@@ -301,14 +301,18 @@ func ReqPage(m Model) string {
 		errorWarning = line
 	}
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(m.newBodyFieldInput.View()) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / v - Add Value / e - edit")
 
-	topHeight := lipgloss.Height(leftBox)
-	bottomHeight := lipgloss.Height(rightBox)
+	var rightBox string
+	var space int
+	if !m.reqPageComponent {
+		rightBox = style3.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / v - Add Value / e - edit")
+		topHeight := lipgloss.Height(leftBox)
+		bottomHeight := lipgloss.Height(rightBox)
 
-	space := m.termHeight - topHeight - bottomHeight - 4
-	if space < 0 {
-		space = 0
+		space = m.termHeight - topHeight - bottomHeight - 4
+		if space < 0 {
+			space = 0
+		}
 	}
 
 	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, strings.Repeat("\n", space), rightBox)
@@ -660,7 +664,6 @@ func DashBoardView(m Model) string {
 	var b strings.Builder
 
 	title := TitleStyle(m.termWidth).Render("-- DashBoard --")
-
 	height := m.termHeight - 3
 
 	requests := m.SelectedCollection.Requests
@@ -683,18 +686,28 @@ func DashBoardView(m Model) string {
 		}
 	}
 
-	var leftBox string
-	var rightBox string
+	var rightContent string
+	useSplit := false
+
+	leftWidth := m.termWidth/3 - 10
+	rightWidth := m.termWidth - leftWidth - 2
 
 	if m.responseComponent {
-		leftWidth := m.termWidth/3 - 10
-		rightWidth := m.termWidth - leftWidth - 2
+		rightContent = BuildApiPageContent(m, rightWidth)
+		useSplit = true
+	} else if m.reqPageComponent {
+		rightContent = ReqPage(m, rightWidth)
+		useSplit = true
+	}
 
-		leftBox = OptionsStyle(leftWidth).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	if useSplit {
+		leftBox := OptionsStyle(leftWidth).
+			Render(lipgloss.JoinVertical(lipgloss.Left, items...))
 
-		res := BuildApiPageContent(m, rightWidth)
-
-		rightBox = DashBoardResponseStyle().Width(rightWidth).Height(height - 20).Render(res)
+		rightBox := DashBoardResponseStyle().
+			Width(rightWidth).
+			Height(height - 20).
+			Render(rightContent)
 
 		layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 		full := lipgloss.JoinVertical(lipgloss.Top, title, layout)
@@ -703,7 +716,8 @@ func DashBoardView(m Model) string {
 		return b.String()
 	}
 
-	leftBox = OptionsStyle(m.termWidth).Render(lipgloss.JoinVertical(lipgloss.Left, items...))
+	leftBox := OptionsStyle(m.termWidth).
+		Render(lipgloss.JoinVertical(lipgloss.Left, items...))
 
 	full := lipgloss.JoinVertical(lipgloss.Top, title, leftBox)
 

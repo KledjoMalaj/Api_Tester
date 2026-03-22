@@ -26,6 +26,7 @@ func HomePageStyle2(termWidth, termHeight int) lipgloss.Style {
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("202")).
 		Width(termWidth - 2).
+		Height(termHeight - 50).
 		Align(lipgloss.Center)
 }
 

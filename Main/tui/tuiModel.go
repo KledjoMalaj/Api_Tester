@@ -79,6 +79,7 @@ type Model struct {
 	pageScrollOffset int
 
 	responseComponent bool
+	reqPageComponent  bool
 }
 
 func NewModel(storage models.Storage) Model {
@@ -144,6 +145,7 @@ func NewModel(storage models.Storage) Model {
 		addVariableKey:      VariableKey,
 		addVariableValue:    VariableValue,
 		responseComponent:   false,
+		reqPageComponent:    false,
 	}
 }
 
