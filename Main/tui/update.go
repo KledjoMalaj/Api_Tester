@@ -416,9 +416,15 @@ func UpdateApiPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pointer = m.ApiIndex
+			if m.responseComponent {
+				m.responseComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pointer = m.ApiIndex
+				m.pageScrollOffset = 0
+			}
 			return m, nil
+
 		case "up", "k":
 			m.apiViewport.LineUp(1)
 		case "down", "j":
@@ -530,11 +536,22 @@ func UpdateReqPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				LocalVariables:     m.LocalVariables,
 			}
 
-			m.pageScrollOffset = 0
-			m.CurrentPage = LoadingPage
-			m.ApiResponse = operations.PostAPiFunc(TuiModel)
-			m.Responses, _ = operations.HandleJson(m.ApiResponse)
-			return m, operations.PostApiCommand(TuiModel)
+			if m.reqPageComponent {
+				m.pageScrollOffset = 0
+				m.ApiResponse = operations.PostAPiFunc(TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				m.reqPageComponent = false
+				m.responseComponent = true
+
+				return m, nil
+			} else {
+				m.pageScrollOffset = 0
+				m.CurrentPage = LoadingPage
+				m.ApiResponse = operations.PostAPiFunc(TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+
+				return m, operations.PostApiCommand(TuiModel)
+			}
 
 		case "v":
 			m.bodyFiledValueInput.Focus()
@@ -1059,30 +1076,10 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.responseComponent {
-			switch msg.String() {
-			case "esc":
-				m.responseComponent = false
-			}
-			return m, nil
+			return UpdateApiPage(m, msg)
 		}
+
 		if m.reqPageComponent {
-			switch msg.String() {
-			// need to fix all the update functions so i can use them in the dashboard
-			// propably the whole app will change , this is a test so idc
-
-			case "enter":
-				TuiModel := models.TuiModel{
-					SelectedApi:        m.SelectedApi,
-					SelectedCollection: m.SelectedCollection,
-					LocalVariables:     m.LocalVariables,
-				}
-
-				m.pageScrollOffset = 0
-				m.ApiResponse = operations.PostAPiFunc(TuiModel)
-				m.Responses, _ = operations.HandleJson(m.ApiResponse)
-				m.reqPageComponent = false
-				m.responseComponent = true
-			}
 			return UpdateReqPage(m, msg)
 		}
 
@@ -1099,7 +1096,6 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			}
 		case "enter":
 			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
-
 			processedApi := operations.ProcessRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)
 
 			switch processedApi.Method {
@@ -1119,7 +1115,12 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				m.ApiIndex = m.pointer
 				m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
 				m.Responses, _ = operations.HandleJson(m.ApiResponse)
-				return m, nil
+			}
+
+			rightSide := m.termWidth - (m.termWidth/3 - 10) - 2
+			if m.viewportReady {
+				m.apiViewport.SetContent(BuildApiPageContent(m, rightSide))
+				m.apiViewport.GotoTop()
 			}
 		}
 	}

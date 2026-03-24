@@ -693,7 +693,7 @@ func DashBoardView(m Model) string {
 	rightWidth := m.termWidth - leftWidth - 2
 
 	if m.responseComponent {
-		rightContent = BuildApiPageContent(m, rightWidth)
+		rightContent = ApipageWithViewport(m)
 		useSplit = true
 	} else if m.reqPageComponent {
 		rightContent = ReqPage(m, rightWidth)
