@@ -98,6 +98,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case VariablesPage:
 			m, cmd := UpdateVariablesPage(m, msg)
 			return m, cmd
+		case DashBoard:
+			m, cmd := UpdateDashBoard(m, msg)
+			return m, cmd
 		}
 	}
 
@@ -176,6 +179,11 @@ func UpdateHomePage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			m.collectionIndex = m.pointer
 			m.pointer = 0
 			m.pageScrollOffset = 0
+
+		case "t":
+			m.CurrentPage = DashBoard
+			m.SelectedCollection = m.storage.Collections[m.pointer]
+			m.pointer = 0
 
 		case ":":
 			m.NewCollectionInput.Focus()
@@ -408,9 +416,15 @@ func UpdateApiPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pointer = m.ApiIndex
+			if m.responseComponent {
+				m.responseComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pointer = m.ApiIndex
+				m.pageScrollOffset = 0
+			}
 			return m, nil
+
 		case "up", "k":
 			m.apiViewport.LineUp(1)
 		case "down", "j":
@@ -522,19 +536,34 @@ func UpdateReqPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				LocalVariables:     m.LocalVariables,
 			}
 
-			m.pageScrollOffset = 0
-			m.CurrentPage = LoadingPage
-			m.ApiResponse = operations.PostAPiFunc(TuiModel)
-			m.Responses, _ = operations.HandleJson(m.ApiResponse)
-			return m, operations.PostApiCommand(TuiModel)
+			if m.reqPageComponent {
+				m.pageScrollOffset = 0
+				m.ApiResponse = operations.PostAPiFunc(TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				m.reqPageComponent = false
+				m.responseComponent = true
+
+				return m, nil
+			} else {
+				m.pageScrollOffset = 0
+				m.CurrentPage = LoadingPage
+				m.ApiResponse = operations.PostAPiFunc(TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+
+				return m, operations.PostApiCommand(TuiModel)
+			}
 
 		case "v":
 			m.bodyFiledValueInput.Focus()
 		case ":":
 			m.newBodyFieldInput.Focus()
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pageScrollOffset = 0
+			if m.reqPageComponent {
+				m.reqPageComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pageScrollOffset = 0
+			}
 		case "up", "k":
 			if m.pointer > 0 {
 				m.pointer--
@@ -649,12 +678,16 @@ func UpdateHeadersPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pointer = m.ApiIndex
-			m.pageScrollOffset = 0
+			if m.headersPageComponent {
+				m.headersPageComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pointer = m.ApiIndex
+				m.pageScrollOffset = 0
 
-			m.SelectedApi = m.Apis[m.ApiIndex]
-			m.Headers = m.SelectedApi.Headers
+				m.SelectedApi = m.Apis[m.ApiIndex]
+				m.Headers = m.SelectedApi.Headers
+			}
 
 		case ":":
 			m.addHeaderKey.Focus()
@@ -1038,6 +1071,68 @@ func UpdateVariablesPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			m.editingLocalVariables = textinput.New()
 			m.editingLocalVariables.SetValue(value)
 			m.editingLocalVariables.Focus()
+		}
+	}
+	return m, nil
+}
+
+func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if m.headersPageComponent {
+			return UpdateHeadersPage(m, msg)
+		}
+		if m.responseComponent {
+			return UpdateApiPage(m, msg)
+		}
+
+		if m.reqPageComponent {
+			return UpdateReqPage(m, msg)
+		}
+
+		switch msg.String() {
+		case "esc":
+			m.CurrentPage = HomePage
+		case "up", "k":
+			if m.pointer > 0 {
+				m.pointer--
+			}
+		case "down", "j":
+			if m.pointer < len(m.SelectedCollection.Requests)-1 {
+				m.pointer++
+			}
+		case "h":
+			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
+			m.headersPageComponent = true
+
+		case "enter":
+			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
+			processedApi := operations.ProcessRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)
+
+			switch processedApi.Method {
+			case "POST", "DELETE", "PUT", "PATCH":
+				m.SelectedApi = processedApi
+				m.BodyFields = processedApi.BodyField
+				m.ApiIndex = m.pointer
+				m.reqPageComponent = true
+
+			case "GET":
+				TuiModel := models.TuiModel{
+					SelectedApi:        m.SelectedApi,
+					SelectedCollection: m.SelectedCollection,
+					LocalVariables:     m.LocalVariables,
+				}
+				m.responseComponent = true
+				m.ApiIndex = m.pointer
+				m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
+				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+			}
+
+			rightSide := m.termWidth - (m.termWidth/3 - 10) - 2
+			if m.viewportReady {
+				m.apiViewport.SetContent(BuildApiPageContent(m, rightSide))
+				m.apiViewport.GotoTop()
+			}
 		}
 	}
 	return m, nil

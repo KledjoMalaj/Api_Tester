@@ -26,6 +26,7 @@ func HomePageStyle2(termWidth, termHeight int) lipgloss.Style {
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("202")).
 		Width(termWidth - 2).
+		Height(termHeight - 50).
 		Align(lipgloss.Center)
 }
 
@@ -126,7 +127,7 @@ func errorStyle(termWidth int) lipgloss.Style {
 		Align(lipgloss.Center)
 }
 
-func CopytextStyle() lipgloss.Style {
+func DashBoardResponseStyle() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("4"))
+		BorderStyle(lipgloss.RoundedBorder())
 }
