@@ -678,12 +678,16 @@ func UpdateHeadersPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pointer = m.ApiIndex
-			m.pageScrollOffset = 0
+			if m.headersPageComponent {
+				m.headersPageComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pointer = m.ApiIndex
+				m.pageScrollOffset = 0
 
-			m.SelectedApi = m.Apis[m.ApiIndex]
-			m.Headers = m.SelectedApi.Headers
+				m.SelectedApi = m.Apis[m.ApiIndex]
+				m.Headers = m.SelectedApi.Headers
+			}
 
 		case ":":
 			m.addHeaderKey.Focus()
@@ -1075,6 +1079,9 @@ func UpdateVariablesPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.headersPageComponent {
+			return UpdateHeadersPage(m, msg)
+		}
 		if m.responseComponent {
 			return UpdateApiPage(m, msg)
 		}
@@ -1094,6 +1101,10 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			if m.pointer < len(m.SelectedCollection.Requests)-1 {
 				m.pointer++
 			}
+		case "h":
+			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
+			m.headersPageComponent = true
+
 		case "enter":
 			m.SelectedApi = m.SelectedCollection.Requests[m.pointer]
 			processedApi := operations.ProcessRequest(m.SelectedApi, m.SelectedCollection.LocalVariables)

@@ -20,7 +20,7 @@ func (m Model) View() string {
 	case RequestPage:
 		return ReqPage(m, m.termWidth)
 	case HeadersPage:
-		return HeadersPageView(m)
+		return HeadersPageView(m, m.termWidth)
 	case QueryParamsPage:
 		return QueryParamsPageView(m)
 	case LoadingPage:
@@ -376,11 +376,11 @@ func FormatJSON(body string, keyStyle lipgloss.Style, valueStyle lipgloss.Style)
 	return styled
 }
 
-func HeadersPageView(m Model) string {
-	style1 := TitleStyle(m.termWidth)
-	style2 := OptionsStyle(m.termWidth)
-	style3 := HomePageStyle2(m.termWidth, m.termHeight)
-	styleInput := inputStyle(m.termWidth)
+func HeadersPageView(m Model, termWidth int) string {
+	style1 := TitleStyle(termWidth)
+	style2 := OptionsStyle(termWidth)
+	style3 := HomePageStyle2(termWidth, m.termHeight)
+	styleInput := inputStyle(termWidth)
 
 	name := m.SelectedApi.Method + "  " + m.SelectedApi.Url
 
@@ -431,13 +431,18 @@ func HeadersPageView(m Model) string {
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addHeaderKey.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
-	topHeight := lipgloss.Height(leftBox)
-	bottomHeight := lipgloss.Height(rightBox)
 
-	space := m.termHeight - topHeight - bottomHeight - 4
-	if space < 0 {
-		space = 0
+	var rightBox string
+	var space int
+	if !m.headersPageComponent {
+		rightBox = style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
+		topHeight := lipgloss.Height(leftBox)
+		bottomHeight := lipgloss.Height(rightBox)
+
+		space = m.termHeight - topHeight - bottomHeight - 4
+		if space < 0 {
+			space = 0
+		}
 	}
 
 	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, strings.Repeat("\n", space), rightBox)
@@ -692,11 +697,15 @@ func DashBoardView(m Model) string {
 	leftWidth := m.termWidth/3 - 10
 	rightWidth := m.termWidth - leftWidth - 2
 
-	if m.responseComponent {
+	switch {
+	case m.responseComponent:
 		rightContent = ApipageWithViewport(m)
 		useSplit = true
-	} else if m.reqPageComponent {
+	case m.reqPageComponent:
 		rightContent = ReqPage(m, rightWidth)
+		useSplit = true
+	case m.headersPageComponent:
+		rightContent = HeadersPageView(m, rightWidth)
 		useSplit = true
 	}
 
@@ -704,10 +713,7 @@ func DashBoardView(m Model) string {
 		leftBox := OptionsStyle(leftWidth).
 			Render(lipgloss.JoinVertical(lipgloss.Left, items...))
 
-		rightBox := DashBoardResponseStyle().
-			Width(rightWidth).
-			Height(height - 20).
-			Render(rightContent)
+		rightBox := DashBoardResponseStyle().Width(rightWidth).Height(height - 20).Render(rightContent)
 
 		layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 		full := lipgloss.JoinVertical(lipgloss.Top, title, layout)

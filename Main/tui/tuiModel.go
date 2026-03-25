@@ -78,8 +78,9 @@ type Model struct {
 
 	pageScrollOffset int
 
-	responseComponent bool
-	reqPageComponent  bool
+	responseComponent    bool
+	reqPageComponent     bool
+	headersPageComponent bool
 }
 
 func NewModel(storage models.Storage) Model {
@@ -129,23 +130,24 @@ func NewModel(storage models.Storage) Model {
 	VariableValue.Width = 50
 
 	return Model{
-		CurrentPage:         HomePage,
-		jsonInput:           ti,
-		viewportReady:       false,
-		NewApiInput:         ai,
-		NewCollectionInput:  collInput,
-		storage:             storage,
-		Collections:         storage.Collections,
-		addHeaderKey:        addHeaderKey,
-		addHeaderValue:      addHeaderValue,
-		newBodyFieldInput:   newBodyField,
-		bodyFiledValueInput: bodyFiledValue,
-		addQueryParamsKey:   QueryParamsKey,
-		addQueryParamsValue: QueryParamsValue,
-		addVariableKey:      VariableKey,
-		addVariableValue:    VariableValue,
-		responseComponent:   false,
-		reqPageComponent:    false,
+		CurrentPage:          HomePage,
+		jsonInput:            ti,
+		viewportReady:        false,
+		NewApiInput:          ai,
+		NewCollectionInput:   collInput,
+		storage:              storage,
+		Collections:          storage.Collections,
+		addHeaderKey:         addHeaderKey,
+		addHeaderValue:       addHeaderValue,
+		newBodyFieldInput:    newBodyField,
+		bodyFiledValueInput:  bodyFiledValue,
+		addQueryParamsKey:    QueryParamsKey,
+		addQueryParamsValue:  QueryParamsValue,
+		addVariableKey:       VariableKey,
+		addVariableValue:     VariableValue,
+		responseComponent:    false,
+		reqPageComponent:     false,
+		headersPageComponent: false,
 	}
 }
 
