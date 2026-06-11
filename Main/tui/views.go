@@ -22,11 +22,11 @@ func (m Model) View() string {
 	case HeadersPage:
 		return HeadersPageView(m, m.termWidth)
 	case QueryParamsPage:
-		return QueryParamsPageView(m)
+		return QueryParamsPageView(m, m.termWidth)
 	case LoadingPage:
 		return loadingView(m)
 	case ResponsePage:
-		return ResponsePageView(m)
+		return ResponsePageView(m, m.termWidth)
 	case VariablesPage:
 		return VariablesPageView(m)
 	case DashBoard:
@@ -451,11 +451,11 @@ func HeadersPageView(m Model, termWidth int) string {
 	return b.String()
 }
 
-func QueryParamsPageView(m Model) string {
-	style1 := TitleStyle(m.termWidth)
-	style2 := OptionsStyle(m.termWidth)
-	style3 := HomePageStyle2(m.termWidth, m.termHeight)
-	styleInput := inputStyle(m.termWidth)
+func QueryParamsPageView(m Model, termWidth int) string {
+	style1 := TitleStyle(termWidth)
+	style2 := OptionsStyle(termWidth)
+	style3 := HomePageStyle2(termWidth, m.termHeight)
+	styleInput := inputStyle(termWidth)
 
 	var b strings.Builder
 	b.WriteString(style1.Render("QueryParams Page"))
@@ -501,13 +501,19 @@ func QueryParamsPageView(m Model) string {
 	}
 
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addQueryParamsKey.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
-	topHeight := lipgloss.Height(leftBox)
-	bottomHeight := lipgloss.Height(rightBox)
 
-	space := m.termHeight - topHeight - bottomHeight - 4
-	if space < 0 {
-		space = 0
+	var rightBox string
+	var space int
+
+	if !m.headersPageComponent {
+		rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
+		topHeight := lipgloss.Height(leftBox)
+		bottomHeight := lipgloss.Height(rightBox)
+
+		space = m.termHeight - topHeight - bottomHeight - 4
+		if space < 0 {
+			space = 0
+		}
 	}
 
 	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, strings.Repeat("\n", space), rightBox)
@@ -523,10 +529,10 @@ func loadingView(m Model) string {
 	return b.String()
 }
 
-func ResponsePageView(m Model) string {
-	style1 := OptionsStyle(m.termWidth - 4)
-	style3 := HomePageStyle2(m.termWidth, m.termHeight)
-	titleStyle := TitleStyle(m.termWidth)
+func ResponsePageView(m Model, termWidth int) string {
+	style1 := OptionsStyle(termWidth - 4)
+	style3 := HomePageStyle2(termWidth, m.termHeight)
+	titleStyle := TitleStyle(termWidth)
 
 	var b strings.Builder
 
@@ -586,13 +592,19 @@ func ResponsePageView(m Model) string {
 	}
 
 	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" + style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
-	rightBox := style3.Render("Commands / ESC - Quit / k - Up / j -> Down / Enter - Add Variable / v - go to Variables / r - go to Response / d - Delete / c - Copy")
-	topHeight := lipgloss.Height(leftBox)
-	bottomHeight := lipgloss.Height(rightBox)
 
-	space := m.termHeight - topHeight - bottomHeight - 4
-	if space < 0 {
-		space = 0
+	var rightBox string
+	var space int
+
+	if !m.resComponent {
+		rightBox = style3.Render("Commands / ESC - Quit / k - Up / j -> Down / Enter - Add Variable / v - go to Variables / r - go to Response / d - Delete / c - Copy")
+		topHeight := lipgloss.Height(leftBox)
+		bottomHeight := lipgloss.Height(rightBox)
+
+		space = m.termHeight - topHeight - bottomHeight - 4
+		if space < 0 {
+			space = 0
+		}
 	}
 
 	layout := lipgloss.JoinVertical(lipgloss.Top, leftBox, strings.Repeat("\n", space), rightBox)
@@ -706,6 +718,12 @@ func DashBoardView(m Model) string {
 		useSplit = true
 	case m.headersPageComponent:
 		rightContent = HeadersPageView(m, rightWidth)
+		useSplit = true
+	case m.paramsComponent:
+		rightContent = QueryParamsPageView(m, rightWidth)
+		useSplit = true
+	case m.resComponent:
+		rightContent = ResponsePageView(m, rightWidth)
 		useSplit = true
 	}
 
