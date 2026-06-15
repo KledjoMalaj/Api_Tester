@@ -119,19 +119,18 @@ func parseData(selectedApi models.Api, m models.TuiModel) string {
 		return "{}"
 	}
 
-	// Build JSON object
 	var b strings.Builder
 	b.WriteString("{\n")
 
 	for i, field := range selectedApi.BodyField {
 		key := field.Key
-		value := field.Value
+
+		value := replaceVariables(field.Value, m.LocalVariables)
 
 		formattedValue := formatJSONValue(value)
 
 		b.WriteString(fmt.Sprintf("  \"%s\": %s", key, formattedValue))
 
-		// Add comma if not the last item
 		if i < len(selectedApi.BodyField)-1 {
 			b.WriteString(",")
 		}
@@ -140,7 +139,7 @@ func parseData(selectedApi models.Api, m models.TuiModel) string {
 
 	b.WriteString("}")
 
-	return replaceVariables(b.String(), m.LocalVariables)
+	return b.String()
 }
 
 func formatJSONValue(value string) string {
