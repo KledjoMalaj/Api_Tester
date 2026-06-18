@@ -81,6 +81,10 @@ type Model struct {
 	responseComponent    bool
 	reqPageComponent     bool
 	headersPageComponent bool
+	paramsComponent      bool
+	resComponent         bool
+
+	secondPointer int
 }
 
 func NewModel(storage models.Storage) Model {

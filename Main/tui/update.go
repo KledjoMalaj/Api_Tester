@@ -809,9 +809,14 @@ func UpdateQueryParamsPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "esc":
-			m.CurrentPage = CollectionPage
-			m.pointer = m.ApiIndex
-			m.pageScrollOffset = 0
+			if m.paramsComponent {
+				m.paramsComponent = false
+			} else {
+				m.CurrentPage = CollectionPage
+				m.pointer = m.ApiIndex
+				m.pageScrollOffset = 0
+			}
+
 		case ":":
 			m.addQueryParamsKey.Focus()
 		case "enter":
@@ -1085,9 +1090,11 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 		if m.responseComponent {
 			return UpdateApiPage(m, msg)
 		}
-
 		if m.reqPageComponent {
 			return UpdateReqPage(m, msg)
+		}
+		if m.paramsComponent {
+			return UpdateQueryParamsPage(m, msg)
 		}
 
 		switch msg.String() {
