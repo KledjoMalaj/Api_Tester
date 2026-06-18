@@ -1,7 +1,8 @@
-package operations
+package tests
 
 import (
 	"GoTuiFrontend/models"
+	"GoTuiFrontend/operations"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -53,7 +54,7 @@ func BenchmarkFetchDataGET(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		response := FetchData(api, m)
+		response := operations.FetchData(api, m)
 
 		if response.StatusCode != http.StatusOK {
 			b.Fatalf("expected status 200, got %d", response.StatusCode)

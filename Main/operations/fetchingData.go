@@ -15,7 +15,7 @@ func FetchData(SelectedApi models.Api, m models.TuiModel) models.ApiResponse {
 	processedApi := ProcessRequest(SelectedApi, m.SelectedCollection.LocalVariables)
 
 	headers := processedApi.Headers
-	api := buildURL(processedApi, m)
+	api := BuildURL(processedApi, m)
 
 	url := strings.TrimSpace(api)
 	url = strings.Trim(url, `"`)
@@ -28,7 +28,7 @@ func FetchData(SelectedApi models.Api, m models.TuiModel) models.ApiResponse {
 	}
 
 	for i := 0; i < len(headers); i++ {
-		req.Header.Set(headers[i].Key, replaceVariables(headers[i].Value, m.LocalVariables))
+		req.Header.Set(headers[i].Key, ReplaceVariables(headers[i].Value, m.LocalVariables))
 	}
 
 	client := &http.Client{}
@@ -62,9 +62,9 @@ func PostAPiFunc(m models.TuiModel) models.ApiResponse {
 
 	headers := m.SelectedApi.Headers
 
-	data := parseData(SelectedApi, m)
+	data := ParseData(SelectedApi, m)
 
-	Url := buildURL(SelectedApi, m)
+	Url := BuildURL(SelectedApi, m)
 	bodyReader := strings.NewReader(data)
 
 	url := strings.TrimSpace(Url)
@@ -85,7 +85,7 @@ func PostAPiFunc(m models.TuiModel) models.ApiResponse {
 	headers = append(headers, newHeader)
 
 	for i := 0; i < len(headers); i++ {
-		req.Header.Set(headers[i].Key, replaceVariables(headers[i].Value, m.LocalVariables))
+		req.Header.Set(headers[i].Key, ReplaceVariables(headers[i].Value, m.LocalVariables))
 	}
 
 	// Send request
@@ -114,7 +114,7 @@ func PostAPiFunc(m models.TuiModel) models.ApiResponse {
 
 	return m.ApiResponse
 }
-func parseData(selectedApi models.Api, m models.TuiModel) string {
+func ParseData(selectedApi models.Api, m models.TuiModel) string {
 	if len(selectedApi.BodyField) == 0 {
 		return "{}"
 	}
@@ -125,9 +125,9 @@ func parseData(selectedApi models.Api, m models.TuiModel) string {
 	for i, field := range selectedApi.BodyField {
 		key := field.Key
 
-		value := replaceVariables(field.Value, m.LocalVariables)
+		value := ReplaceVariables(field.Value, m.LocalVariables)
 
-		formattedValue := formatJSONValue(value)
+		formattedValue := FormatJSONValue(value)
 
 		b.WriteString(fmt.Sprintf("  \"%s\": %s", key, formattedValue))
 
@@ -142,7 +142,7 @@ func parseData(selectedApi models.Api, m models.TuiModel) string {
 	return b.String()
 }
 
-func formatJSONValue(value string) string {
+func FormatJSONValue(value string) string {
 	if value == "null" {
 		return "null"
 	}
@@ -177,14 +177,14 @@ func PostApiCommand(m models.TuiModel) tea.Cmd {
 	}
 }
 
-func buildURL(api models.Api, m models.TuiModel) string {
+func BuildURL(api models.Api, m models.TuiModel) string {
 	if len(api.QueryParams) == 0 {
 		return api.Url
 	}
 
 	var params []string
 	for _, param := range api.QueryParams {
-		params = append(params, url.QueryEscape(param.Key)+"="+url.QueryEscape(replaceVariables(param.Value, m.LocalVariables)))
+		params = append(params, url.QueryEscape(param.Key)+"="+url.QueryEscape(ReplaceVariables(param.Value, m.LocalVariables)))
 	}
 
 	return api.Url + "?" + strings.Join(params, "&")
@@ -192,11 +192,11 @@ func buildURL(api models.Api, m models.TuiModel) string {
 
 func ProcessRequest(api models.Api, variables []models.LocalVariable) models.Api {
 	processed := api
-	processed.Url = replaceVariables(api.Url, variables)
+	processed.Url = ReplaceVariables(api.Url, variables)
 	return processed
 }
 
-func replaceVariables(text string, variables []models.LocalVariable) string {
+func ReplaceVariables(text string, variables []models.LocalVariable) string {
 	result := text
 	for _, variable := range variables {
 		placeholder := "{{" + variable.Key + "}}"

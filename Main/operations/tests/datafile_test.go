@@ -1,7 +1,8 @@
-package operations
+package tests
 
 import (
 	"GoTuiFrontend/models"
+	"GoTuiFrontend/operations"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,11 +14,11 @@ func setupTestFile(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "test-api-data.json")
 
-	oldFileName := fileName
-	fileName = testFile
+	oldFileName := operations.FileName
+	operations.FileName = testFile
 
 	t.Cleanup(func() {
-		fileName = oldFileName
+		operations.FileName = oldFileName
 	})
 }
 
@@ -32,12 +33,12 @@ func TestWriteAndReadFile(t *testing.T) {
 		},
 	}
 
-	err := WriteFile(storage)
+	err := operations.WriteFile(storage)
 	if err != nil {
 		t.Fatalf("expected WriteFile to succeed, got error: %v", err)
 	}
 
-	result, err := ReadFile()
+	result, err := operations.ReadFile()
 	if err != nil {
 		t.Fatalf("expected ReadFile to succeed, got error: %v", err)
 	}
@@ -54,12 +55,12 @@ func TestWriteAndReadFile(t *testing.T) {
 func TestReadFileCreatesFileIfMissing(t *testing.T) {
 	setupTestFile(t)
 
-	_, err := os.Stat(fileName)
+	_, err := os.Stat(operations.FileName)
 	if !os.IsNotExist(err) {
 		t.Fatalf("expected test file to not exist before ReadFile")
 	}
 
-	storage, err := ReadFile()
+	storage, err := operations.ReadFile()
 	if err != nil {
 		t.Fatalf("expected ReadFile to create file without error, got: %v", err)
 	}
@@ -68,7 +69,7 @@ func TestReadFileCreatesFileIfMissing(t *testing.T) {
 		t.Errorf("expected empty collections, got %d", len(storage.Collections))
 	}
 
-	_, err = os.Stat(fileName)
+	_, err = os.Stat(operations.FileName)
 	if err != nil {
 		t.Fatalf("expected file to be created, got error: %v", err)
 	}
@@ -81,12 +82,12 @@ func TestAddCollection(t *testing.T) {
 		Collections: []models.Collection{},
 	}
 
-	err := AddCollection(storage, storage.Collections, "Backend APIs")
+	err := operations.AddCollection(storage, storage.Collections, "Backend APIs")
 	if err != nil {
 		t.Fatalf("expected AddCollection to succeed, got error: %v", err)
 	}
 
-	result, err := ReadFile()
+	result, err := operations.ReadFile()
 	if err != nil {
 		t.Fatalf("expected ReadFile to succeed, got error: %v", err)
 	}
@@ -107,7 +108,7 @@ func TestAddCollectionEmptyNameReturnsError(t *testing.T) {
 		Collections: []models.Collection{},
 	}
 
-	err := AddCollection(storage, storage.Collections, "")
+	err := operations.AddCollection(storage, storage.Collections, "")
 	if err == nil {
 		t.Fatal("expected error for empty collection name, got nil")
 	}
@@ -125,12 +126,12 @@ func TestAddApi(t *testing.T) {
 		},
 	}
 
-	err := AddApi(storage, 0, storage.Collections[0].Requests, "GET https://api.example.com/users")
+	err := operations.AddApi(storage, 0, storage.Collections[0].Requests, "GET https://api.example.com/users")
 	if err != nil {
 		t.Fatalf("expected AddApi to succeed, got error: %v", err)
 	}
 
-	result, err := ReadFile()
+	result, err := operations.ReadFile()
 	if err != nil {
 		t.Fatalf("expected ReadFile to succeed, got error: %v", err)
 	}
@@ -162,7 +163,7 @@ func TestAddApiInvalidFormatReturnsError(t *testing.T) {
 		},
 	}
 
-	err := AddApi(storage, 0, storage.Collections[0].Requests, "GET")
+	err := operations.AddApi(storage, 0, storage.Collections[0].Requests, "GET")
 	if err == nil {
 		t.Fatal("expected error for invalid API format, got nil")
 	}
@@ -182,7 +183,7 @@ func TestDeleteCollection(t *testing.T) {
 		},
 	}
 
-	remainingCollections, err := DeleteCollection(storage.Collections[0], storage)
+	remainingCollections, err := operations.DeleteCollection(storage.Collections[0], storage)
 	if err != nil {
 		t.Fatalf("expected DeleteCollection to succeed, got error: %v", err)
 	}
@@ -215,12 +216,12 @@ func TestAddLocalVariable(t *testing.T) {
 		},
 	}
 
-	err := AddLocalVariable(storage, 0, variables)
+	err := operations.AddLocalVariable(storage, 0, variables)
 	if err != nil {
 		t.Fatalf("expected AddLocalVariable to succeed, got error: %v", err)
 	}
 
-	result, err := ReadFile()
+	result, err := operations.ReadFile()
 	if err != nil {
 		t.Fatalf("expected ReadFile to succeed, got error: %v", err)
 	}
@@ -243,7 +244,7 @@ func TestHandleJson(t *testing.T) {
 		Body: `{"token":"abc123","id":1,"active":true}`,
 	}
 
-	result, err := HandleJson(response)
+	result, err := operations.HandleJson(response)
 	if err != nil {
 		t.Fatalf("expected HandleJson to succeed, got error: %v", err)
 	}
@@ -266,7 +267,7 @@ func TestHandleJsonInvalidJsonReturnsError(t *testing.T) {
 		Body: `{invalid json}`,
 	}
 
-	_, err := HandleJson(response)
+	_, err := operations.HandleJson(response)
 	if err == nil {
 		t.Fatal("expected error for invalid JSON, got nil")
 	}

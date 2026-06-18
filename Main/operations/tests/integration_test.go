@@ -1,7 +1,8 @@
-package operations
+package tests
 
 import (
 	"GoTuiFrontend/models"
+	"GoTuiFrontend/operations"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -68,7 +69,7 @@ func TestFetchDataIntegration(t *testing.T) {
 		},
 	}
 
-	response := FetchData(api, m)
+	response := operations.FetchData(api, m)
 
 	if response.StatusCode != http.StatusOK {
 		t.Errorf("expected status code 200, got %d", response.StatusCode)
@@ -134,7 +135,7 @@ func TestPostApiFuncIntegration(t *testing.T) {
 		},
 	}
 
-	res := PostAPiFunc(m)
+	res := operations.PostAPiFunc(m)
 
 	if res.StatusCode != http.StatusCreated {
 		t.Errorf("expected status code 201, got %d", res.StatusCode)

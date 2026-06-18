@@ -1,7 +1,8 @@
-package operations
+package tests
 
 import (
 	"GoTuiFrontend/models"
+	"GoTuiFrontend/operations"
 	"encoding/json"
 	"testing"
 )
@@ -20,7 +21,7 @@ func TestReplaceVariables(t *testing.T) {
 	input := "Bearer {{token}} from {{base}}"
 	expected := "Bearer tokenValue from http://baseUrl"
 
-	result := replaceVariables(input, variables)
+	result := operations.ReplaceVariables(input, variables)
 
 	if result != expected {
 		t.Errorf("expected %q, got %q", expected, result)
@@ -62,7 +63,7 @@ func TestFormatJSONValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := formatJSONValue(tt.input)
+			result := operations.FormatJSONValue(tt.input)
 
 			if result != tt.expected {
 				t.Errorf("expected %q, got %q", tt.expected, result)
@@ -95,7 +96,7 @@ func TestBuildURLWithQueryParams(t *testing.T) {
 		},
 	}
 
-	result := buildURL(api, m)
+	result := operations.BuildURL(api, m)
 
 	expected := "http://testingApi?page=1&search=apples"
 
@@ -124,7 +125,7 @@ func TestParseDataCreatesValidJSON(t *testing.T) {
 
 	m := models.TuiModel{}
 
-	result := parseData(api, m)
+	result := operations.ParseData(api, m)
 
 	var parsed map[string]interface{}
 

@@ -1,7 +1,8 @@
-package operations
+package tests
 
 import (
 	"GoTuiFrontend/models"
+	"GoTuiFrontend/operations"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -15,11 +16,11 @@ func setupE2ETestFile(t *testing.T) {
 	tempDir := t.TempDir()
 	testFile := filepath.Join(tempDir, "e2e-test-data.json")
 
-	oldFileName := fileName
-	fileName = testFile
+	oldFileName := operations.FileName
+	operations.FileName = testFile
 
 	t.Cleanup(func() {
-		fileName = oldFileName
+		operations.FileName = oldFileName
 	})
 }
 
@@ -53,17 +54,17 @@ func TestE2ERequestAndResponse(t *testing.T) {
 		Collections: []models.Collection{},
 	}
 
-	err := AddCollection(storage, storage.Collections, "E2E Collection")
+	err := operations.AddCollection(storage, storage.Collections, "E2E Collection")
 	if err != nil {
 		t.Fatalf("failed to add collection: %v", err)
 	}
 
-	storage, err = ReadFile()
+	storage, err = operations.ReadFile()
 	if err != nil {
 		t.Fatalf("failed to read file: %v", err)
 	}
 
-	err = AddLocalVariable(storage, 0, []models.LocalVariable{
+	err = operations.AddLocalVariable(storage, 0, []models.LocalVariable{
 		{
 			Key:   "token",
 			Value: "tokenTest",
@@ -77,17 +78,17 @@ func TestE2ERequestAndResponse(t *testing.T) {
 		t.Fatalf("failed to add local variables: %v", err)
 	}
 
-	storage, err = ReadFile()
+	storage, err = operations.ReadFile()
 	if err != nil {
 		t.Fatalf("filed to read after adding local variables: %v", err)
 	}
 
-	err = AddApi(storage, 0, storage.Collections[0].Requests, "GET "+server.URL+"/profile")
+	err = operations.AddApi(storage, 0, storage.Collections[0].Requests, "GET "+server.URL+"/profile")
 	if err != nil {
 		t.Fatalf("failed to add API: %v", err)
 	}
 
-	storage, err = ReadFile()
+	storage, err = operations.ReadFile()
 	if err != nil {
 		t.Fatalf("failed to read file after add ing api: %v", err)
 	}
@@ -99,12 +100,12 @@ func TestE2ERequestAndResponse(t *testing.T) {
 		},
 	}
 
-	err = AddHeader(headers, storage, 0, 0)
+	err = operations.AddHeader(headers, storage, 0, 0)
 	if err != nil {
 		t.Fatalf("failed to add headers: %v", err)
 	}
 
-	storage, err = ReadFile()
+	storage, err = operations.ReadFile()
 	if err != nil {
 		t.Fatalf("failed to read file after adding header: %v", err)
 	}
@@ -116,12 +117,12 @@ func TestE2ERequestAndResponse(t *testing.T) {
 		},
 	}
 
-	err = AddQueryParam(queryParams, storage, 0, 0)
+	err = operations.AddQueryParam(queryParams, storage, 0, 0)
 	if err != nil {
 		t.Fatalf("failed to add query params: %v", err)
 	}
 
-	storage, err = ReadFile()
+	storage, err = operations.ReadFile()
 	if err != nil {
 		t.Fatalf("failed to read file after adding query params %v", err)
 	}
@@ -135,13 +136,13 @@ func TestE2ERequestAndResponse(t *testing.T) {
 		LocalVariables:     selectedCollection.LocalVariables,
 	}
 
-	response := FetchData(selectedApi, m)
+	response := operations.FetchData(selectedApi, m)
 
 	if response.StatusCode != http.StatusOK {
 		t.Fatalf("expected status code 200, got %d", response.StatusCode)
 	}
 
-	values, err := HandleJson(response)
+	values, err := operations.HandleJson(response)
 	if err != nil {
 		t.Fatalf("failed to parse JSON response: %v", err)
 	}
