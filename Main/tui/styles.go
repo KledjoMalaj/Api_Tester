@@ -123,7 +123,7 @@ func errorStyle(termWidth int) lipgloss.Style {
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("9")).
 		Padding(1).
-		Width(termWidth - 25).
+		Width(termWidth - 2).
 		Align(lipgloss.Center)
 }
 
