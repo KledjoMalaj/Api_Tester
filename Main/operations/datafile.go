@@ -13,10 +13,10 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-var fileName string = "APITEST1.json"
+var FileName string = "APITEST1.json"
 
 func CreateFile() error {
-	file, err := os.Create(fileName)
+	file, err := os.Create(FileName)
 	if err != nil {
 		return fmt.Errorf("failed to create data file: %w", err)
 	}
@@ -25,7 +25,7 @@ func CreateFile() error {
 }
 
 func fileChecker() error {
-	file, err := os.Open(fileName)
+	file, err := os.Open(FileName)
 	if err != nil {
 		if createErr := CreateFile(); createErr != nil {
 			return fmt.Errorf("failed to create file: %w", createErr)
@@ -40,7 +40,7 @@ func ReadFile() (models.Storage, error) {
 	if err := fileChecker(); err != nil {
 		return models.Storage{}, err
 	}
-	file, err := os.ReadFile(fileName)
+	file, err := os.ReadFile(FileName)
 	if err != nil {
 		return models.Storage{}, fmt.Errorf("failed to read file: %w", err)
 	}
@@ -266,7 +266,7 @@ func DeleteLocalVariable(selectedLocalVariable models.LocalVariable, storage mod
 }
 
 func WriteFile(storage models.Storage) error {
-	file, err := os.Create(fileName)
+	file, err := os.Create(FileName)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
@@ -287,7 +287,7 @@ func WatchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 		return nil, fmt.Errorf("failed to create watcher: %w", err)
 	}
 
-	if err := watcher.Add(fileName); err != nil {
+	if err := watcher.Add(FileName); err != nil {
 		watcher.Close()
 		return nil, fmt.Errorf("failed to watch file: %w", err)
 	}
