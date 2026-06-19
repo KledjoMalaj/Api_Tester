@@ -20,6 +20,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case models.ApiResponseMsg:
 		m.ApiResponse = msg.Response
+		m.Responses, _ = operations.HandleJson(m.ApiResponse)
 		m.CurrentPage = ApiPage
 		if m.viewportReady {
 			m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
@@ -300,8 +301,6 @@ func UpdateCollectionPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				}
 				m.CurrentPage = LoadingPage
 				m.ApiIndex = m.pointer
-				m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
-				m.Responses, _ = operations.HandleJson(m.ApiResponse)
 				return m, operations.FetchApiCommand(m.SelectedApi, TuiModel)
 			}
 
@@ -547,8 +546,6 @@ func UpdateReqPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			} else {
 				m.pageScrollOffset = 0
 				m.CurrentPage = LoadingPage
-				m.ApiResponse = operations.PostAPiFunc(TuiModel)
-				m.Responses, _ = operations.HandleJson(m.ApiResponse)
 
 				return m, operations.PostApiCommand(TuiModel)
 			}
