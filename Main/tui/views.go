@@ -541,25 +541,35 @@ func ResponsePageView(m Model, termWidth int) string {
 
 	var responses []string
 
-	if len(m.Responses) == 0 {
+	responseRows := buildResponseTreeRows(m.ApiResponse.Body, m.ResponseExpanded)
+	if len(responseRows) == 0 {
 		line := "No Response loaded"
 		responses = append(responses, line)
 	} else {
-		maxVisible := 5
-		start := m.responseScrollOffset
-		end := start + maxVisible
-
-		if end > len(m.Responses) {
-			end = len(m.Responses)
+		start, end := visibleResponseWindow(m, responseRows)
+		valueWidth := termWidth - 24
+		if valueWidth < 16 {
+			valueWidth = 16
 		}
-
 		for i := start; i < end; i++ {
-			v := m.Responses[i]
+			row := responseRows[i]
 			var line string
+
+			toggle := " "
+			if row.Expandable {
+				if row.Expanded {
+					toggle = "v"
+				} else {
+					toggle = ">"
+				}
+			}
+
+			indent := strings.Repeat("  ", row.Depth)
+			text := fmt.Sprintf("%s%s %s: %s", indent, toggle, row.Key, truncateText(row.Value, valueWidth-row.Depth*2))
 			if m.pointer == i && !m.VariablesFocus {
-				line = style4.Render("> ") + style5.Render(v.Key+" : "+v.Value) + "\n"
+				line = style4.Render("> ") + style5.Render(text) + "\n"
 			} else {
-				line = "   " + v.Key + " : " + v.Value + "\n"
+				line = "   " + text + "\n"
 			}
 			responses = append(responses, line)
 		}
@@ -597,7 +607,7 @@ func ResponsePageView(m Model, termWidth int) string {
 	var space int
 
 	if !m.resComponent {
-		rightBox = style3.Render("Commands / ESC - Quit / k - Up / j -> Down / Enter - Add Variable / v - go to Variables / r - go to Response / d - Delete / c - Copy")
+		rightBox = style3.Render("Commands / ESC - Back / k,j - Move / o - Open-Close / Enter - Add Variable / v,r - Switch Pane / d - Delete Variable / c - Copy")
 		topHeight := lipgloss.Height(leftBox)
 		bottomHeight := lipgloss.Height(rightBox)
 
