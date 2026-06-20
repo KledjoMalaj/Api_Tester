@@ -317,21 +317,55 @@ func WatchFile(p *tea.Program) (*fsnotify.Watcher, error) {
 func HandleJson(response models.ApiResponse) ([]models.Response, error) {
 	var vars []models.Response
 
-	var data map[string]interface{}
+	var data interface{}
 	err := json.Unmarshal([]byte(response.Body), &data)
 	if err != nil {
 		return nil, err
 	}
 
-	for k, v := range data {
-		vars = append(vars, models.Response{
-			Key:   k,
-			Value: fmt.Sprintf("%v", v),
-		})
-	}
+	flattenJSONResponse(&vars, "", data)
 	sort.Slice(vars, func(i, j int) bool {
 		return vars[i].Key < vars[j].Key
 	})
 
 	return vars, nil
+}
+
+func flattenJSONResponse(vars *[]models.Response, path string, value interface{}) {
+	switch v := value.(type) {
+	case map[string]interface{}:
+		keys := make([]string, 0, len(v))
+		for key := range v {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+
+		for _, key := range keys {
+			childPath := key
+			if path != "" {
+				childPath = path + "." + key
+			}
+			flattenJSONResponse(vars, childPath, v[key])
+		}
+	case []interface{}:
+		for i, child := range v {
+			childPath := fmt.Sprintf("[%d]", i)
+			if path != "" {
+				childPath = fmt.Sprintf("%s[%d]", path, i)
+			}
+			flattenJSONResponse(vars, childPath, child)
+		}
+	default:
+		*vars = append(*vars, models.Response{
+			Key:   path,
+			Value: formatJSONResponseValue(v),
+		})
+	}
+}
+
+func formatJSONResponseValue(value interface{}) string {
+	if value == nil {
+		return "null"
+	}
+	return fmt.Sprintf("%v", value)
 }

@@ -272,3 +272,33 @@ func TestHandleJsonInvalidJsonReturnsError(t *testing.T) {
 		t.Fatal("expected error for invalid JSON, got nil")
 	}
 }
+
+func TestHandleJsonNestedArrayValues(t *testing.T) {
+	response := models.ApiResponse{
+		Body: `{"users":[{"id":1,"name":"Ada"},{"id":2,"name":"Lin"}],"meta":{"count":2}}`,
+	}
+
+	result, err := operations.HandleJson(response)
+	if err != nil {
+		t.Fatalf("expected HandleJson to succeed, got error: %v", err)
+	}
+
+	values := map[string]string{}
+	for _, item := range result {
+		values[item.Key] = item.Value
+	}
+
+	expected := map[string]string{
+		"meta.count":    "2",
+		"users[0].id":   "1",
+		"users[0].name": "Ada",
+		"users[1].id":   "2",
+		"users[1].name": "Lin",
+	}
+
+	for key, expectedValue := range expected {
+		if values[key] != expectedValue {
+			t.Errorf("expected %s=%q, got %q", key, expectedValue, values[key])
+		}
+	}
+}

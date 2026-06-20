@@ -21,6 +21,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case models.ApiResponseMsg:
 		m.ApiResponse = msg.Response
 		m.Responses, _ = operations.HandleJson(m.ApiResponse)
+		m.ResponseExpanded = map[string]bool{"$": true}
+		m.pointer = 0
+		m.responseScrollOffset = 0
 		m.CurrentPage = ApiPage
 		if m.viewportReady {
 			m.apiViewport.SetContent(BuildApiPageContent(m, m.termWidth))
@@ -539,6 +542,9 @@ func UpdateReqPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				m.pageScrollOffset = 0
 				m.ApiResponse = operations.PostAPiFunc(TuiModel)
 				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				m.ResponseExpanded = map[string]bool{"$": true}
+				m.pointer = 0
+				m.responseScrollOffset = 0
 				m.reqPageComponent = false
 				m.responseComponent = true
 
@@ -936,18 +942,45 @@ func UpdateResponsePage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 					}
 				}
 			case "down", "j":
-				if m.pointer < len(m.Responses)-1 {
+				responseRows := buildResponseTreeRows(m.ApiResponse.Body, m.ResponseExpanded)
+				if m.pointer < len(responseRows)-1 {
 					m.pointer++
 
-					maxVisible := 5
+					maxVisible := responseListHeight(m)
 					if m.pointer >= m.responseScrollOffset+maxVisible {
 						m.responseScrollOffset++
 					}
 				}
+			case "o", "right", "left":
+				selectedRow, ok := selectedResponseRow(m)
+				if !ok || !selectedRow.Expandable {
+					return m, nil
+				}
+				if m.ResponseExpanded == nil {
+					m.ResponseExpanded = map[string]bool{"$": true}
+				}
+				switch msg.String() {
+				case "right":
+					m.ResponseExpanded[selectedRow.Path] = true
+				case "left":
+					m.ResponseExpanded[selectedRow.Path] = false
+				default:
+					m.ResponseExpanded[selectedRow.Path] = !m.ResponseExpanded[selectedRow.Path]
+				}
+				responseRows := buildResponseTreeRows(m.ApiResponse.Body, m.ResponseExpanded)
+				if m.pointer >= len(responseRows) && len(responseRows) > 0 {
+					m.pointer = len(responseRows) - 1
+				}
+				if m.responseScrollOffset > m.pointer {
+					m.responseScrollOffset = m.pointer
+				}
 			case "enter":
-				selectedResponse := m.Responses[m.pointer]
+				selectedResponse, ok := selectedResponseRow(m)
+				if !ok || !selectedResponse.CanSave {
+					return m, nil
+				}
 				newLocalVariable := models.LocalVariable{
-					Key:   selectedResponse.Key,
+					Key:   responseVariableKey(selectedResponse),
 					Value: selectedResponse.Value,
 				}
 				m.LocalVariables = append(m.LocalVariables, newLocalVariable)
@@ -960,8 +993,15 @@ func UpdateResponsePage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				m.pointer = 0
 				m.variableScrollOffset = 0
 			case "c":
-				selectedResponse := m.Responses[m.pointer]
-				err := clipboard.WriteAll(selectedResponse.Value)
+				selectedResponse, ok := selectedResponseRow(m)
+				if !ok {
+					return m, nil
+				}
+				value := selectedResponse.Value
+				if !selectedResponse.CanSave {
+					value = selectedResponse.Path
+				}
+				err := clipboard.WriteAll(value)
 				if err != nil {
 					return m, models.ShowErrorCommand("Failed to Copy Response: " + err.Error())
 				}
@@ -1130,6 +1170,9 @@ func UpdateDashBoard(m Model, msg tea.Msg) (Model, tea.Cmd) {
 				m.ApiIndex = m.pointer
 				m.ApiResponse = operations.FetchData(m.SelectedApi, TuiModel)
 				m.Responses, _ = operations.HandleJson(m.ApiResponse)
+				m.ResponseExpanded = map[string]bool{"$": true}
+				m.pointer = 0
+				m.responseScrollOffset = 0
 			}
 
 			rightSide := m.termWidth - (m.termWidth/3 - 10) - 2

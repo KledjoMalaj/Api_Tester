@@ -62,6 +62,7 @@ type Model struct {
 	QueryParams         []models.QueryParam
 
 	Responses             []models.Response
+	ResponseExpanded      map[string]bool
 	LocalVariables        []models.LocalVariable
 	VariablesFocus        bool
 	addVariableKey        textinput.Model
@@ -149,6 +150,7 @@ func NewModel(storage models.Storage) Model {
 		addQueryParamsValue:  QueryParamsValue,
 		addVariableKey:       VariableKey,
 		addVariableValue:     VariableValue,
+		ResponseExpanded:     map[string]bool{"$": true},
 		responseComponent:    false,
 		reqPageComponent:     false,
 		headersPageComponent: false,
