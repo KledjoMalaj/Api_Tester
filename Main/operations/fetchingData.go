@@ -198,9 +198,24 @@ func ProcessRequest(api models.Api, variables []models.LocalVariable) models.Api
 
 func ReplaceVariables(text string, variables []models.LocalVariable) string {
 	result := text
+	values := make(map[string]string, len(variables))
 	for _, variable := range variables {
-		placeholder := "{{" + variable.Key + "}}"
-		result = strings.ReplaceAll(result, placeholder, variable.Value)
+		values[variable.Key] = variable.Value
+	}
+
+	for i := 0; i < len(variables)+1; i++ {
+		changed := false
+		for key, value := range values {
+			placeholder := "{{" + key + "}}"
+			next := strings.ReplaceAll(result, placeholder, value)
+			if next != result {
+				changed = true
+				result = next
+			}
+		}
+		if !changed {
+			break
+		}
 	}
 	return result
 }
