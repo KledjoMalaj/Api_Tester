@@ -50,7 +50,7 @@ func Homepage(m Model) string {
 
 	var items []string
 	if len(collections) == 0 {
-		line := "No Collections ..."
+		line := EmptyStateStyle.Render("No collections")
 		items = append(items, line)
 	} else {
 
@@ -84,12 +84,12 @@ func Homepage(m Model) string {
 
 	if m.hasError {
 		errorStyle := errorStyle(m.termWidth)
-		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		line := errorStyle.Render("ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
 		errorWarning = line
 	}
 
 	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewCollectionInput.View())) + "\n\n" + errorWarning
-	rightBox := style2.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / e - Edit")
+	rightBox := style2.Render("Keys: esc quit | k/j move | enter open | : add | e edit | d delete")
 	topHeight := lipgloss.Height(leftBox)
 	bottomHeight := lipgloss.Height(rightBox)
 
@@ -119,7 +119,7 @@ func Collectionpage(termWidth, termHeight int, m Model) string {
 	var items []string
 
 	if len(m.Apis) == 0 {
-		line := "No Apies ..."
+		line := EmptyStateStyle.Render("No APIs")
 		items = append(items, line)
 	} else {
 
@@ -140,13 +140,13 @@ func Collectionpage(termWidth, termHeight int, m Model) string {
 				continue
 			}
 
-			text := api.Method + " " + api.Url
 			if i == m.pointer {
-				text = style4.Render("> ") + style5.Render(text+"\n")
+				text := style4.Render("> ") + ApiMethodStyle(api.Method).Render(api.Method) + " " + style5.Render(api.Url) + "\n"
+				items = append(items, text)
 			} else {
-				text = "   " + text + "\n"
+				text := "   " + ApiMethodStyle(api.Method).Render(api.Method) + " " + api.Url + "\n"
+				items = append(items, text)
 			}
-			items = append(items, text)
 		}
 	}
 
@@ -154,12 +154,12 @@ func Collectionpage(termWidth, termHeight int, m Model) string {
 
 	if m.hasError {
 		errorStyle := errorStyle(m.termWidth)
-		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		line := errorStyle.Render("ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
 		errorWarning = line
 	}
 
-	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.NewApiInput.View())) + "\n\n" + errorWarning
-	rightBox := style2.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / e - Edit / h - Headers / q - QueryParams ")
+	leftBox := style3.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + renderApiAddInput(m, styleInput) + "\n\n" + errorWarning
+	rightBox := style2.Render("Keys: esc back | k/j move | enter send/open | : add | e edit | h headers | q params | v variables | d delete")
 
 	topHeight := lipgloss.Height(leftBox)
 	bottomHeight := lipgloss.Height(rightBox)
@@ -175,12 +175,59 @@ func Collectionpage(termWidth, termHeight int, m Model) string {
 	return b.String()
 }
 
+func renderApiAddInput(m Model, style lipgloss.Style) string {
+	if !m.NewApiInput.Focused() && !m.apiMethodSelecting {
+		return style.Render("Press ':' to add a request")
+	}
+
+	content := []string{
+		SectionTitleStyle.Render("New Request"),
+		renderApiMethodOptions(m),
+	}
+
+	if m.apiMethodSelecting {
+		content = append(content, EmptyStateStyle.Render("Select method with k/j or up/down, then press enter"))
+	} else {
+		content = append(content, "URL", m.NewApiInput.View())
+	}
+
+	return style.Render(lipgloss.JoinVertical(lipgloss.Left, content...))
+}
+
+func renderApiMethodOptions(m Model) string {
+	options := m.apiMethodOptions
+	if len(options) == 0 {
+		options = []string{"GET", "POST", "PUT", "DELETE", "PATCH"}
+	}
+
+	lines := make([]string, 0, len(options))
+	for i, method := range options {
+		prefix := "  "
+		if i == m.apiMethodIndex {
+			prefix = "> "
+		}
+		lines = append(lines, prefix+MethodOptionStyle(method, i == m.apiMethodIndex).Render(method))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, lines...)
+}
+
+func selectedApiMethod(m Model) string {
+	if len(m.apiMethodOptions) == 0 {
+		return "GET"
+	}
+	if m.apiMethodIndex < 0 || m.apiMethodIndex >= len(m.apiMethodOptions) {
+		return m.apiMethodOptions[0]
+	}
+	return m.apiMethodOptions[m.apiMethodIndex]
+}
+
 func ApipageWithViewport(m Model) string {
 	if !m.viewportReady {
 		return "Loading..."
 	}
 
-	helpText := HelpTextStyle.Render("\n\n↑/↓ j/k: scroll • space/b: page up/down • g/G: top/bottom • esc: back")
+	helpText := HelpTextStyle.Render("\n\nKeys: k/j scroll | space/f page down | b page up | g/G top/bottom | r response values | e edit | esc back")
 	return m.apiViewport.View() + helpText
 }
 
@@ -203,7 +250,7 @@ func BuildApiPageContent(m Model, termWidth int) string {
 	var resp strings.Builder
 
 	resp.WriteString("Status: " + statusStyle.Render(Response.Status) + "\n")
-	resp.WriteString(fmt.Sprintf("Status Code: %s\n", statusStyle.Render(fmt.Sprintf("%d \n", Response.StatusCode))))
+	resp.WriteString(fmt.Sprintf("Status Code: %s\n", statusStyle.Render(fmt.Sprintf("%d", Response.StatusCode))))
 	resp.WriteString(style2.Render(" "))
 
 	if !m.responseComponent {
@@ -227,14 +274,14 @@ func BuildApiPageContent(m Model, termWidth int) string {
 	formattedBody := FormatJSON(Response.Body, bodyElementStyle, bodyElementStyle2)
 	resp.WriteString("\nBody:\n" + formattedBody + "\n")
 
-	b.WriteString(style1.Render("This is the Api-Page !"))
+	b.WriteString(style1.Render("API Response"))
 
 	b.WriteString("\n\n")
 	if m.editing {
 		b.WriteString(style3.Render("editing..." + "\n" + styleInput.Render(m.editingCurrentApi.View())))
 	} else {
 		b.WriteString(style3.Render(
-			"Selected Api is : " +
+			"Request: " +
 				MethodStyle.Render(SelectedApi.Method) + " " + UrlStyle.Render(SelectedApi.Url),
 		))
 	}
@@ -264,7 +311,7 @@ func ReqPage(m Model, termWidth int) string {
 	var items []string
 
 	if len(bodyFields) == 0 {
-		line := style4.Render("No Request Fields\n\n")
+		line := EmptyStateStyle.Render("No request fields\n\n")
 		items = append(items, line)
 
 	} else {
@@ -297,7 +344,7 @@ func ReqPage(m Model, termWidth int) string {
 
 	if m.hasError {
 		errorStyle := errorStyle(m.termWidth)
-		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		line := errorStyle.Render("ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
 		errorWarning = line
 	}
 	leftBox := style2.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(m.newBodyFieldInput.View()) + "\n\n" + errorWarning
@@ -305,7 +352,7 @@ func ReqPage(m Model, termWidth int) string {
 	var rightBox string
 	var space int
 	if !m.reqPageComponent {
-		rightBox = style3.Render("Commands // ESC - Quit / k - Up / j - Down / Enter - Open / : - Add New / d - Delete / v - Add Value / e - edit")
+		rightBox = style3.Render("Keys: esc back | k/j move | enter send | : add field | v add value | e edit | d delete")
 		topHeight := lipgloss.Height(leftBox)
 		bottomHeight := lipgloss.Height(rightBox)
 
@@ -393,7 +440,7 @@ func HeadersPageView(m Model, termWidth int) string {
 	var items []string
 
 	if len(headers) == 0 {
-		line := style4.Render("No headers\n\n")
+		line := EmptyStateStyle.Render("No headers\n\n")
 		items = append(items, line)
 	} else {
 
@@ -426,7 +473,7 @@ func HeadersPageView(m Model, termWidth int) string {
 
 	if m.hasError {
 		errorStyle := errorStyle(m.termWidth)
-		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		line := errorStyle.Render("ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
 		errorWarning = line
 	}
 
@@ -435,7 +482,7 @@ func HeadersPageView(m Model, termWidth int) string {
 	var rightBox string
 	var space int
 	if !m.headersPageComponent {
-		rightBox = style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
+		rightBox = style3.Render("Keys: esc back | k/j move | enter add value | : add header | e edit | d delete")
 		topHeight := lipgloss.Height(leftBox)
 		bottomHeight := lipgloss.Height(rightBox)
 
@@ -458,14 +505,14 @@ func QueryParamsPageView(m Model, termWidth int) string {
 	styleInput := inputStyle(termWidth)
 
 	var b strings.Builder
-	b.WriteString(style1.Render("QueryParams Page"))
+	b.WriteString(style1.Render("Query Params"))
 	b.WriteString("\n")
 
 	var items []string
 	QueryParams := m.QueryParams
 
 	if len(QueryParams) == 0 {
-		line := "No Query Params\n\n"
+		line := EmptyStateStyle.Render("No query params\n\n")
 		items = append(items, line)
 	} else {
 
@@ -496,7 +543,7 @@ func QueryParamsPageView(m Model, termWidth int) string {
 
 	if m.hasError {
 		errorStyle := errorStyle(m.termWidth)
-		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		line := errorStyle.Render("ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
 		errorWarning = line
 	}
 
@@ -506,7 +553,7 @@ func QueryParamsPageView(m Model, termWidth int) string {
 	var space int
 
 	if !m.headersPageComponent {
-		rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / : - Add New / d - Delete / Enter - Add Val / e - edit")
+		rightBox = style3.Render("Keys: esc back | k/j move | enter add value | : add param | e edit | d delete")
 		topHeight := lipgloss.Height(leftBox)
 		bottomHeight := lipgloss.Height(rightBox)
 
@@ -543,7 +590,7 @@ func ResponsePageView(m Model, termWidth int) string {
 
 	responseRows := buildResponseTreeRows(m.ApiResponse.Body, m.ResponseExpanded)
 	if len(responseRows) == 0 {
-		line := "No Response loaded"
+		line := EmptyStateStyle.Render("No response loaded")
 		responses = append(responses, line)
 	} else {
 		start, end := visibleResponseWindow(m, responseRows)
@@ -577,7 +624,7 @@ func ResponsePageView(m Model, termWidth int) string {
 	var variables []string
 
 	if len(m.LocalVariables) == 0 {
-		line := "No Variables loaded"
+		line := EmptyStateStyle.Render("No variables loaded")
 		variables = append(variables, line)
 	} else {
 
@@ -601,13 +648,15 @@ func ResponsePageView(m Model, termWidth int) string {
 		}
 	}
 
-	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, responses...)) + "\n\n" + style1.Render(lipgloss.JoinVertical(lipgloss.Left, variables...))
+	responsePanel := lipgloss.JoinVertical(lipgloss.Left, SectionTitleStyle.Render("Response Values"), "", lipgloss.JoinVertical(lipgloss.Left, responses...))
+	variablesPanel := lipgloss.JoinVertical(lipgloss.Left, SectionTitleStyle.Render("Local Variables"), "", lipgloss.JoinVertical(lipgloss.Left, variables...))
+	leftBox := style1.Render(responsePanel) + "\n\n" + style1.Render(variablesPanel)
 
 	var rightBox string
 	var space int
 
 	if !m.resComponent {
-		rightBox = style3.Render("Commands / ESC - Back / k,j - Move / o - Open-Close / Enter - Add Variable / v,r - Switch Pane / d - Delete Variable / c - Copy")
+		rightBox = style3.Render("Keys: esc back | k/j move | o open/close | enter save variable | c copy | v/r switch pane | d delete variable")
 		topHeight := lipgloss.Height(leftBox)
 		bottomHeight := lipgloss.Height(rightBox)
 
@@ -630,13 +679,13 @@ func VariablesPageView(m Model) string {
 	styleInput := inputStyle(m.termWidth)
 
 	var b strings.Builder
-	b.WriteString(style2.Render("Variables Page "))
+	b.WriteString(style2.Render("Variables"))
 	b.WriteString("\n")
 
 	var items []string
 
 	if len(m.LocalVariables) == 0 {
-		line := "No Variables\n\n"
+		line := EmptyStateStyle.Render("No variables\n\n")
 		items = append(items, line)
 	} else {
 
@@ -667,12 +716,12 @@ func VariablesPageView(m Model) string {
 
 	if m.hasError {
 		errorStyle := errorStyle(m.termWidth)
-		line := errorStyle.Render("⚠ ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
+		line := errorStyle.Render("ERROR: " + m.errorMessage + "\n\nPress 'x' to dismiss")
 		errorWarning = line
 	}
 
 	leftBox := style1.Render(lipgloss.JoinVertical(lipgloss.Left, items...)) + "\n\n" + styleInput.Render(lipgloss.JoinVertical(lipgloss.Left, m.addVariableKey.View())) + "\n\n" + errorWarning
-	rightBox := style3.Render("Commands // ESC - Quit / k - Up / j - Down / d - delete / e - edit")
+	rightBox := style3.Render("Keys: esc back | k/j move | enter add value | : add variable | e edit | d delete")
 	topHeight := lipgloss.Height(leftBox)
 	bottomHeight := lipgloss.Height(rightBox)
 
@@ -690,14 +739,14 @@ func VariablesPageView(m Model) string {
 func DashBoardView(m Model) string {
 	var b strings.Builder
 
-	title := TitleStyle(m.termWidth).Render("-- DashBoard --")
-	height := m.termHeight - 3
+	title := TitleStyle(m.termWidth).Render("Dashboard")
+	height := safeHeight(m.termHeight, 3)
 
 	requests := m.SelectedCollection.Requests
 	var items []string
 
 	if len(requests) == 0 {
-		items = append(items, "No request")
+		items = append(items, EmptyStateStyle.Render("No requests"))
 	} else {
 		maxItems := height
 		if len(requests) < maxItems {
@@ -716,7 +765,16 @@ func DashBoardView(m Model) string {
 	var rightContent string
 	useSplit := false
 
-	leftWidth := m.termWidth/3 - 10
+	leftWidth := m.termWidth/3 - 6
+	if leftWidth < 18 {
+		leftWidth = 18
+	}
+	if leftWidth > m.termWidth-32 {
+		leftWidth = m.termWidth - 32
+	}
+	if leftWidth < 12 {
+		leftWidth = 12
+	}
 	rightWidth := m.termWidth - leftWidth - 2
 
 	switch {
@@ -741,7 +799,7 @@ func DashBoardView(m Model) string {
 		leftBox := OptionsStyle(leftWidth).
 			Render(lipgloss.JoinVertical(lipgloss.Left, items...))
 
-		rightBox := DashBoardResponseStyle().Width(rightWidth).Height(height - 20).Render(rightContent)
+		rightBox := DashBoardResponseStyle().Width(rightWidth).Height(safeHeight(height, 2)).Render(rightContent)
 
 		layout := lipgloss.JoinHorizontal(lipgloss.Top, leftBox, rightBox)
 		full := lipgloss.JoinVertical(lipgloss.Top, title, layout)
