@@ -26,6 +26,9 @@ const (
 type Model struct {
 	NewApiInput        textinput.Model
 	NewCollectionInput textinput.Model
+	apiMethodOptions   []string
+	apiMethodIndex     int
+	apiMethodSelecting bool
 	storage            models.Storage
 	SelectedCollection models.Collection
 	collectionIndex    int
@@ -95,7 +98,7 @@ func NewModel(storage models.Storage) Model {
 	ti.Focus()
 
 	ai := textinput.New()
-	ai.Placeholder = "Add New Api..."
+	ai.Placeholder = "Enter request URL..."
 	ai.Width = 50
 
 	collInput := textinput.New()
@@ -140,6 +143,7 @@ func NewModel(storage models.Storage) Model {
 		viewportReady:        false,
 		NewApiInput:          ai,
 		NewCollectionInput:   collInput,
+		apiMethodOptions:     []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
 		storage:              storage,
 		Collections:          storage.Collections,
 		addHeaderKey:         addHeaderKey,

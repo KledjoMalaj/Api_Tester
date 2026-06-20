@@ -247,18 +247,44 @@ func UpdateCollectionPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			return m, cmd
 		}
 
+		if m.apiMethodSelecting {
+			switch msg.String() {
+			case "esc":
+				m.apiMethodSelecting = false
+				m.NewApiInput.SetValue("")
+				m.NewApiInput.Blur()
+				return m, nil
+			case "up", "k":
+				if m.apiMethodIndex > 0 {
+					m.apiMethodIndex--
+				}
+				return m, nil
+			case "down", "j":
+				if m.apiMethodIndex < len(m.apiMethodOptions)-1 {
+					m.apiMethodIndex++
+				}
+				return m, nil
+			case "enter":
+				m.apiMethodSelecting = false
+				m.NewApiInput.Focus()
+				return m, nil
+			}
+		}
+
 		if m.NewApiInput.Focused() {
 			switch msg.String() {
 			case "esc":
 				m.NewApiInput.Blur()
+				m.apiMethodSelecting = false
 				return m, nil
 			case "enter":
-
-				if err := operations.AddApi(m.storage, m.collectionIndex, m.Apis, m.NewApiInput.Value()); err != nil {
+				apiInput := selectedApiMethod(m) + " " + m.NewApiInput.Value()
+				if err := operations.AddApi(m.storage, m.collectionIndex, m.Apis, apiInput); err != nil {
 					return m, models.ShowErrorCommand("Failed to add api: " + err.Error())
 				}
 				m.NewApiInput.SetValue("")
 				m.NewApiInput.Blur()
+				m.apiMethodIndex = 0
 			}
 
 			m.NewApiInput, cmd = m.NewApiInput.Update(msg)
@@ -308,7 +334,9 @@ func UpdateCollectionPage(m Model, msg tea.Msg) (Model, tea.Cmd) {
 			}
 
 		case ":":
-			m.NewApiInput.Focus()
+			m.apiMethodSelecting = true
+			m.NewApiInput.SetValue("")
+			m.NewApiInput.Blur()
 			return m, nil
 
 		case "d":
